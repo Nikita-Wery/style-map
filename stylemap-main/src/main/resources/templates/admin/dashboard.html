@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html lang="ru" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>Админ Панель</title>
+    <meta name="_csrf" th:content="${_csrf.token}"/>
+    <meta name="_csrf_header" th:content="${_csrf.headerName}"/>
+    <link rel="stylesheet" th:href="@{/css/style.css}">
+    <style>
+        .admin-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 20px; }
+        .admin-section { background: var(--card-bg); padding: 25px; border-radius: var(--radius-lg); box-shadow: 0 4px 24px rgba(0,0,0,0.04); }
+    </style>
+</head>
+<body>
+<div style="max-width: 1200px; margin: 0 auto;">
+    <h1 style="margin-bottom: 30px;">Панель Администратора</h1>
+    <div class="admin-grid">
+        <div class="admin-section">
+            <h3>Управление Пользователями</h3>
+            <form th:action="@{/admin/users/create}" method="post">
+                <input type="text" name="username" placeholder="Username">
+                <input type="text" name="password" placeholder="Password">
+                <button type="submit">Создать юзера</button>
+            </form>
+            <hr style="border:0; border-top:1px solid #eee; margin: 20px 0;">
+            <form th:action="@{/admin/users/update}" method="post">
+                <input type="text" name="userId" placeholder="User UUID">
+                <select name="isActive">
+                    <option value="true">Активен (Разбан)</option>
+                    <option value="false">Забанен</option>
+                </select>
+                <button type="submit" class="btn-secondary">Изменить статус</button>
+            </form>
+            <hr style="border:0; border-top:1px solid #eee; margin: 20px 0;">
+            <form th:action="@{/admin/users/delete}" method="post">
+                <input type="text" name="userId" placeholder="User UUID">
+                <button type="submit" class="btn-danger">Удалить юзера</button>
+            </form>
+        </div>
+
+    </div>
+</div>
+</body>
+</html>

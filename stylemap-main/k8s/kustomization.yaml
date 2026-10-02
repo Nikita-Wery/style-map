@@ -1,0 +1,24 @@
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+
+namespace: stylemap
+
+resources:
+  # Namespace идёт первым, но Kustomize сам разберётся с порядком
+  - namespace.yaml
+
+  # Конфиги и секреты — до всего остального
+  - configMap/app-configmap.yaml
+  - data/app-secret.yaml
+  - data/db-secret.yaml
+  - data/uploads-pvc.yaml
+
+  # БД
+  - db/statefulset.yaml
+
+  # Миграции — Job должен отработать до бэкенда
+  - backend/liquibase-migration-job.yaml
+
+  # Приложения
+  - backend/deployment.yaml
+  - frontend/frontend-deployment.yaml

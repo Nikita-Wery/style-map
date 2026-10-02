@@ -1,0 +1,26 @@
+<!DOCTYPE html>
+<html lang="ru" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>Подтверждение почты</title>
+    <link rel="stylesheet" th:href="@{/css/style.css}">
+</head>
+<body style="display: flex; align-items: center; justify-content: center; min-height: 100vh;">
+
+<div class="container" style="max-width: 400px; text-align: center;">
+    <h2>Проверьте почту</h2>
+    <p style="color: var(--text-secondary); margin-bottom: 24px;">Мы отправили код подтверждения на ваш email.</p>
+
+    <div th:if="${error}" class="error-text" style="margin-bottom: 15px;" th:text="${error}"></div>
+
+    <form th:action="@{/auth/confirm}" method="post">
+        <input type="hidden" name="email" th:value="${email}">
+        <input type="text" id="code" name="code" required maxlength="6" pattern="\d{6}"
+               placeholder="000000" style="text-align: center; font-size: 24px; letter-spacing: 8px;">
+
+        <button type="submit" style="width: 100%; margin-top: 10px;">Подтвердить</button>
+    </form>
+</div>
+
+</body>
+</html>

@@ -1,0 +1,227 @@
+<!DOCTYPE html>
+<html lang="ru" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>Детали поста - StyleMap</title>
+    <meta name="_csrf" th:content="${_csrf.token}"/>
+    <meta name="_csrf_header" th:content="${_csrf.headerName}"/>
+    <link rel="stylesheet" th:href="@{/css/style.css}">
+    <style>
+        .post-detail-wrapper { display: flex; gap: 40px; background: var(--card-bg); border-radius: var(--radius-lg); overflow: hidden; box-shadow: 0 4px 24px rgba(0,0,0,0.04); }
+        .media-side { flex: 1.2; background: #000; display: flex; align-items: center; justify-content: center; min-height: 500px; }
+        .media-side img, .media-side video { max-width: 100%; max-height: 85vh; object-fit: contain; }
+        .info-side { flex: 1; padding: 40px; overflow-y: auto; }
+
+        .author-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 30px; }
+        .rating-stars { font-size: 24px; cursor: pointer; color: #e8e8ed; transition: color 0.2s; }
+        .rating-stars span:hover, .rating-stars span.active { color: #ffcc00; }
+
+        .outfit-item-card { background: var(--bg-color); padding: 16px; border-radius: var(--radius-md); margin-bottom: 12px; }
+        .price-tag { font-weight: 600; color: var(--text-primary); }
+        .buy-link { font-size: 13px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px; }
+    </style>
+</head>
+<body>
+
+<div class="top-nav">
+    <div class="nav-left">
+        <button class="nav-btn" onclick="history.back()">⬅ Назад</button>
+        <a th:href="@{/showroom/home}" class="nav-btn">На главную</a>
+    </div>
+    <div class="nav-right">
+        <button class="nav-btn" onclick="toggleProfileDropdown()">Профиль ▾</button>
+        <div class="profile-dropdown" id="profileDropdown">
+            <a th:href="@{/showroom/profile}" class="dropdown-item">Мой профиль</a>
+            <form th:action="@{/auth/logout}" method="post" style="margin:0;"><button type="submit" class="dropdown-logout">Выйти</button></form>
+        </div>
+    </div>
+</div>
+
+<div class="post-detail-wrapper" style="max-width: 1200px; margin: 0 auto;">
+    <div class="media-side">
+        <th:block th:if="${!post.mediaFiles.isEmpty()}">
+            <img th:if="${post.mediaFiles[0].type == 'IMAGE'}" th:src="${post.mediaFiles[0].url}" alt="Outfit">
+            <video th:if="${post.mediaFiles[0].type == 'VIDEO'}" th:src="${post.mediaFiles[0].url}" controls autoplay muted loop></video>
+        </th:block>
+    </div>
+
+    <div class="info-side">
+        <div class="author-header">
+            <a th:href="@{/showroom/user/{username}(username=${post.authorUsername})}" style="display: flex; align-items: center; gap: 10px;">
+                <div style="width: 40px; height: 40px; border-radius: 50%; background: #eee; display: flex; align-items: center; justify-content: center;">👤</div>
+                <span style="font-weight: 600; font-size: 18px;" th:text="${post.authorUsername}"></span>
+            </a>
+            <button th:if="${!post.isAuthor}" class="btn" th:classappend="${post.isFollowingAuthor} ? 'btn-secondary' : ''"
+                    th:data-author-id="${post.authorId}" onclick="toggleUserFollow(this.getAttribute('data-author-id'), this)"
+                    th:text="${post.isFollowingAuthor ? 'Отписаться' : 'Подписаться'}"></button>
+        </div>
+
+        <div id="viewMode">
+            <p class="description" th:text="${post.description}" style="font-size: 16px; line-height: 1.6;"></p>
+            <div style="margin: 20px 0;">
+                <a th:each="tag : ${post.hashtagPaths}" th:href="@{/showroom/home(hashtag=${tag})}"
+                   style="color: var(--text-secondary); margin-right: 8px; font-size: 14px;" th:text="'#' + ${tag}"></a>
+            </div>
+
+            <h3 style="margin-top: 40px; font-size: 20px;">Где купить:</h3>
+            <div th:each="item : ${post.outfitItems}" class="outfit-item-card">
+                <div style="display: flex; justify-content: space-between; margin-bottom: 10px;">
+                    <b th:text="${item.name}"></b>
+                    <span th:if="${item.brand}" th:text="${item.brand}" style="color: var(--text-secondary);"></span>
+                </div>
+                <div th:each="linkEntry : ${item.links}" style="display: flex; align-items: center; justify-content: space-between; padding-top: 8px; border-top: 1px solid rgba(0,0,0,0.05);">
+                    <span class="price-tag" th:text="${linkEntry.value.price} + ' ' + ${linkEntry.value.currency}"></span>
+                    <div style="display: flex; gap: 10px; align-items: center;">
+                        <a th:href="${linkEntry.value.url}" target="_blank" class="buy-link">Купить</a>
+                        <select class="target-currency" style="width: auto; padding: 4px 8px; font-size: 12px;"
+                                th:data-price="${linkEntry.value.price}" th:data-currency="${linkEntry.value.currency}" onchange="handleCurrencyConversion(this)">
+                            <option value="RUB">RUB</option><option value="USD">USD</option><option value="EUR">EUR</option>
+                        </select>
+                    </div>
+                </div>
+            </div>
+
+            <div th:if="${post.isAuthor}" style="margin-top: 40px; display: flex; gap: 10px;">
+                <button onclick="toggleEditMode()" class="btn btn-secondary" style="flex:1;">Редактировать</button>
+                <button th:data-post-id="${post.id}" onclick="handleDelete(this.getAttribute('data-post-id'), this)" class="btn btn-danger" style="flex:1;">🗑 Удалить</button>
+            </div>
+
+            <div th:if="${!post.isAuthor}" class="box" style="margin-top: 40px; text-align: center;">
+                <div style="font-size: 14px; color: var(--text-secondary); margin-bottom: 8px;">Средний рейтинг: <b th:text="${post.averageRating ?: '0'}"></b>/10</div>
+                <div class="rating-stars" id="starContainer">
+                    <span th:each="i : ${#numbers.sequence(1, 10)}" th:data-value="${i}"
+                          th:classappend="${post.currentUserRating != null && post.currentUserRating >= i} ? 'active' : ''"
+                          onclick="handleRate(this.getAttribute('data-value'))">★</span>
+                </div>
+                <div id="ratingStatus" style="font-size: 12px; margin-top: 8px;"></div>
+            </div>
+        </div>
+
+        <div id="editMode" style="display: none;">
+            <h3 style="margin-bottom: 20px;">Редактирование</h3>
+            <textarea id="editDescriptionInput" rows="4" th:text="${post.description}"></textarea>
+            <input type="text" id="editHashtagsInput" th:value="${#strings.listJoin(post.hashtagPaths, ' ')}" placeholder="Теги через пробел" style="margin: 15px 0;">
+
+            <div id="editItemsContainer"></div>
+            <button type="button" onclick="addEditItem()" class="btn btn-secondary" style="width: 100%; margin-bottom: 20px;">+ Добавить вещь</button>
+
+            <div style="display: flex; gap: 10px;">
+                <button onclick="savePostChanges()" class="btn" style="flex: 1;">Сохранить</button>
+                <button onclick="toggleEditMode()" class="btn btn-secondary" style="flex: 1;">Отмена</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script th:src="@{/js/main.js}"></script>
+<script th:inline="javascript">
+    const postId = /*[[${post.id.toString()}]]*/ 'null';
+    const postData = /*[[${post}]]*/ {};
+
+    function handleRate(score) {
+        const statusText = document.getElementById('ratingStatus');
+        statusText.innerText = '⏳...';
+        fetch(`/api/actions/posts/${postId}/rate?score=${score}`, {
+            method: 'POST',
+            headers: { [AppUtils.getCsrfHeader()]: AppUtils.getCsrfToken() }
+        }).then(res => res.json()).then(data => {
+            if (data.status === 'success') {
+                statusText.innerText = 'Оценка сохранена!';
+                document.querySelectorAll('#starContainer span').forEach(s => {
+                    s.classList.toggle('active', parseInt(s.getAttribute('data-value')) <= score);
+                });
+            }
+        });
+    }
+
+    function handleCurrencyConversion(select) {
+        const originalAmount = select.getAttribute('data-price').replace(',', '.');
+        const from = select.getAttribute('data-currency');
+        const to = select.value;
+        const priceTag = select.closest('div').parentElement.querySelector('.price-tag');
+
+        fetch(`/api/actions/convert-currency?amount=${originalAmount}&from=${from}&to=${to}`)
+            .then(res => res.json()).then(data => {
+            if(data.status === 'success') priceTag.innerText = data.result + ' ' + data.currency;
+        });
+    }
+
+    function handleDelete(id, btn) {
+        btn.disabled = true;
+        fetch(`/api/actions/posts/${id}`, {
+            method: 'DELETE',
+            headers: { [AppUtils.getCsrfHeader()]: AppUtils.getCsrfToken() }
+        }).then(res => { if(res.ok) window.location.href = '/showroom/home'; });
+    }
+
+    function toggleEditMode() {
+        const v = document.getElementById('viewMode'), e = document.getElementById('editMode');
+        v.style.display = v.style.display === 'none' ? 'block' : 'none';
+        e.style.display = e.style.display === 'none' ? 'block' : 'none';
+        if(e.style.display === 'block') renderEditItems();
+    }
+
+    function renderEditItems() {
+        const container = document.getElementById('editItemsContainer');
+        container.innerHTML = '';
+        (postData.outfitItems || []).forEach(item => addEditItem(item));
+    }
+
+    function addEditItem(item = {name: '', brand: '', links: {}}) {
+        const div = document.createElement('div');
+        div.className = 'box';
+        div.style.marginBottom = '15px';
+        div.innerHTML = `
+            <div style="display: flex; gap: 10px; margin-bottom: 10px;">
+                <input type="text" class="edit-item-name" placeholder="Название" value="${item.name}">
+                <input type="text" class="edit-item-brand" placeholder="Бренд" value="${item.brand}">
+                <button type="button" onclick="this.parentElement.parentElement.remove()" class="btn-danger" style="padding: 5px 12px;">&times;</button>
+            </div>
+            <div class="edit-links-container"></div>
+            <button type="button" onclick="addEditLink(this)" class="btn-secondary" style="font-size: 12px; padding: 5px;">+ Добавить ссылку</button>
+        `;
+        document.getElementById('editItemsContainer').appendChild(div);
+        const linkContainer = div.querySelector('.edit-links-container');
+        Object.entries(item.links).forEach(([c, l]) => addEditLink(div.querySelector('button'), c, l.url, l.price, l.currency));
+    }
+
+    function addEditLink(btn, country='RU', url='', price='', currency='RUB') {
+        const div = document.createElement('div');
+        div.style = "display: flex; gap: 5px; margin-bottom: 5px;";
+        div.innerHTML = `
+            <input type="text" class="link-country" value="${country}" style="width: 50px;">
+            <input type="text" class="link-url" value="${url}" style="flex: 1;">
+            <input type="number" class="link-price" value="${price}" style="width: 80px;">
+            <input type="text" class="link-currency" value="${currency}" style="width: 60px;">
+        `;
+        btn.previousElementSibling.appendChild(div);
+    }
+
+    function savePostChanges() {
+        const items = [];
+        document.querySelectorAll('#editMode .box').forEach(b => {
+            const links = {};
+            b.querySelectorAll('.link-url').forEach(urlInput => {
+                const row = urlInput.parentElement;
+                links[row.querySelector('.link-country').value] = {
+                    url: urlInput.value,
+                    price: parseFloat(row.querySelector('.link-price').value),
+                    currency: row.querySelector('.link-currency').value
+                };
+            });
+            items.push({ name: b.querySelector('.edit-item-name').value, brand: b.querySelector('.edit-item-brand').value, links });
+        });
+
+        fetch(`/api/actions/posts/${postId}`, {
+            method: 'PUT',
+            headers: { [AppUtils.getCsrfHeader()]: AppUtils.getCsrfToken(), 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                description: document.getElementById('editDescriptionInput').value,
+                hashtags: document.getElementById('editHashtagsInput').value.replaceAll('#', '').split(' ').filter(t => t),
+                outfitItems: items
+            })
+        }).then(res => res.json()).then(data => { if(data.status === 'success') window.location.reload(); });
+    }
+</script>
+</body>
+</html>

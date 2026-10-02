@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html lang="ru" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>Вход - StyleMap</title>
+    <meta name="_csrf" th:content="${_csrf.token}"/>
+    <meta name="_csrf_header" th:content="${_csrf.headerName}"/>
+    <link rel="stylesheet" th:href="@{/css/style.css}">
+</head>
+<body style="display: flex; align-items: center; justify-content: center; min-height: 100vh; background: var(--bg-color);">
+
+<div class="container" style="text-align: center; max-width: 400px; width: 100%;">
+    <h2 style="margin-bottom: 20px;">Вход в аккаунт</h2>
+    <div th:if="${message}" class="success-text" th:text="${message}"></div>
+    <div th:if="${error}" class="error-text" th:text="${error}"></div>
+    <div th:if="${param.logout}" class="success-text">Вы вышли из аккаунта.</div>
+
+    <form th:action="@{/auth/process-login}" method="post" style="margin-top: 20px;">
+        <input type="text" name="username" placeholder="Логин" required />
+        <input type="password" name="password" placeholder="Пароль" required />
+        <button type="submit" style="width: 100%;">Войти</button>
+    </form>
+    <a th:href="@{/oauth2/authorization/google}" class="btn btn-secondary" style="width: 80%; display: flex; align-items: center; justify-content: center; gap: 10px;">
+        <img src="https://www.gstatic.com/images/branding/product/1x/gsa_512dp.png" width="20" alt="Google">
+        Войти через Google
+    </a>
+    <div style="margin-top: 20px; font-size: 14px;">
+        Нет аккаунта? <a th:href="@{/auth/register}">Регистрация</a>
+    </div>
+</div>
+
+</body>
+</html>

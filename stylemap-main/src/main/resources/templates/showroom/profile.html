@@ -1,0 +1,123 @@
+<!DOCTYPE html>
+<html lang="ru" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title th:text="'Профиль - ' + ${profile.username}">Профиль пользователя</title>
+    <meta name="_csrf" th:content="${_csrf.token}"/>
+    <meta name="_csrf_header" th:content="${_csrf.headerName}"/>
+    <link rel="stylesheet" th:href="@{/css/style.css}">
+    <style>
+        .profile-header { background: var(--card-bg); padding: 40px; border-radius: var(--radius-lg); box-shadow: 0 4px 24px rgba(0,0,0,0.04); display: flex; align-items: center; gap: 30px; margin-bottom: 40px; }
+        .profile-avatar { width: 120px; height: 120px; border-radius: 50%; background: var(--bg-color); display: flex; align-items: center; justify-content: center; font-size: 40px; color: var(--text-secondary); overflow: hidden; }
+        .profile-stats { display: flex; gap: 20px; margin-bottom: 20px; color: var(--text-secondary); }
+        .profile-stats b { color: var(--text-primary); font-size: 18px; }
+        .form-logout { display: flex; align-items: center; gap: 10px; margin: 0; flex-direction: row;}
+    </style>
+</head>
+<body>
+<div class="top-nav">
+    <div class="nav-left">
+        <button class="nav-btn" onclick="history.back()">⬅ Назад</button>
+        <a th:href="@{/showroom/home}" class="nav-btn">На главную</a>
+    </div>
+    <div class="nav-right">
+        <button class="nav-btn" onclick="toggleProfileDropdown()">Профиль ▾</button>
+        <div class="profile-dropdown" id="profileDropdown">
+            <a th:href="@{/showroom/profile}" class="dropdown-item">На страницу профиля</a>
+            <form th:action="@{/auth/logout}" method="post" style="margin:0;">
+                <button type="submit" class="dropdown-logout">Выйти из аккаунта</button>
+            </form>
+        </div>
+    </div>
+</div>
+
+<div class="container" style="padding: 0; background: transparent; box-shadow: none;">
+    <div class="profile-header">
+        <div class="profile-avatar"><span th:text="${#strings.substring(profile.username, 0, 1).toUpperCase()}">U</span></div>
+        <div class="profile-info">
+            <h2 th:text="${profile.username}">username</h2>
+            <div class="profile-stats">
+                <span><b th:text="${profile.followersCount}">0</b> подписчиков</span>
+                <span><b th:text="${profile.followingCount}">0</b> подписок</span>
+            </div>
+            <div class="profile-actions">
+                <th:block th:if="${profile.isCurrentUserProfile}">
+                    <div style="display: flex; gap: 15px; align-items: center;">
+                        <a href="/showroom/createPost" class="btn">➕ Создать аутфит</a>
+                        <form th:action="@{/auth/logout}" method="post" class="form-logout">
+                            <button type="submit" class="btn btn-secondary">Выйти</button>
+                        </form>
+                    </div>
+                </th:block>
+                <th:block th:if="${!profile.isCurrentUserProfile}">
+                    <button class="btn"
+                            th:classappend="${profile.isFollowing} ? 'btn-secondary' : ''"
+                            th:data-profile-id="${profile.id}"
+                            onclick="handleProfileFollow(this.getAttribute('data-profile-id'), this)"
+                            th:text="${profile.isFollowing ? 'Отписаться' : 'Подписаться'}">
+                    </button>
+                </th:block>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="masonry-grid" id="feedGrid"></div>
+<div id="scrollAnchor" class="loader">Загружаем аутфиты...</div>
+
+<script th:src="@{/js/main.js}"></script>
+<script th:inline="javascript">
+    const targetUserId = /*[[${profile.id.toString()}]]*/ 'null';
+    let currentPage = 0; let isFetching = false; let hasMore = true;
+    const feedGrid = document.getElementById('feedGrid');
+    const scrollAnchor = document.getElementById('scrollAnchor');
+
+    async function loadUserPosts() {
+        if (isFetching || !hasMore) return;
+        isFetching = true; scrollAnchor.style.display = 'block';
+        try {
+            const response = await fetch(`/api/posts/user/${targetUserId}?page=${currentPage}&size=10`);
+            if (!response.ok) {
+                feedGrid.innerHTML = `<div class="container" style="text-align: center;"><h3 class="error-text">Упс, ошибка сервера! 🛠</h3></div>`;
+                return;
+            }
+            const data = await response.json();
+            if (data.content.length === 0 && currentPage === 0) {
+                feedGrid.innerHTML = `<div class="container" style="text-align: center; color: var(--text-secondary);"><h3>Тут пока пусто 📭</h3></div>`;
+            }
+            data.content.forEach(post => {
+                const card = document.createElement('div');
+                card.className = 'post-card';
+                card.onclick = () => window.location.href = `/showroom/post/${post.id}`;
+                if (post.mediaType === 'VIDEO') {
+                    card.innerHTML = `<video src="${post.mediaUrl}" class="post-media" autoplay muted loop></video>`;
+                } else {
+                    card.innerHTML = `<img src="${post.mediaUrl}" class="post-media" loading="lazy" alt="Outfit">`;
+                }
+                feedGrid.appendChild(card);
+            });
+            currentPage++; hasMore = !data.last;
+        } catch (e) { console.error(e); } finally {
+            isFetching = false;
+            if (!hasMore) scrollAnchor.innerText = 'Вы посмотрели все аутфиты! 🎉';
+            else {
+                scrollAnchor.innerText = 'Крутите вниз для загрузки...';
+                if (scrollAnchor.getBoundingClientRect().top <= window.innerHeight + 200) loadUserPosts();
+            }
+        }
+    }
+
+    const observer = new IntersectionObserver(entries => { if (entries[0].isIntersecting) loadUserPosts(); }, { rootMargin: "200px" });
+    observer.observe(scrollAnchor);
+    function handleProfileFollow(authorId, btnElement) {
+        toggleUserFollow(authorId, btnElement, (action) => {
+            const followersCounter = document.querySelector('.profile-stats span:first-child b');
+            let count = parseInt(followersCounter.innerText);
+            followersCounter.innerText = action === 'followed' ? count + 1 : count - 1;
+        });
+    }
+
+    loadUserPosts();
+</script>
+</body>
+</html>

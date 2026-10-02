@@ -1,0 +1,80 @@
+spring:
+  # По умолчанию миграции выполняет само приложение (docker-compose, локальный запуск).
+  # В Kubernetes они вынесены в отдельный Job, поэтому там переменная
+  # SPRING_LIQUIBASE_ENABLED=false в ConfigMap.
+  liquibase:
+    enabled: ${SPRING_LIQUIBASE_ENABLED:true}
+  thymeleaf:
+    prefix: classpath:/templates/
+    suffix: .html
+    cache: false
+  datasource:
+    url: ${POSTGRES_URL}
+    username: ${POSTGRES_USERNAME}
+    password: ${POSTGRES_PASSWORD}
+    driver-class-name: org.postgresql.Driver
+  servlet:
+    multipart:
+      max-file-size: 100MB
+      max-request-size: 105MB
+  jpa:
+    show-sql: true
+  security:
+    oauth2:
+      client:
+        registration:
+          google:
+            client-id: ${clientId}
+            client-secret: ${clientSecret}
+            scope:
+              - email
+              - profile
+  mail:
+    host: smtp.gmail.com
+    port: 587
+    username: ${senderEmail}
+    password: ${googleApp}
+    properties:
+      mail:
+        smtp:
+          auth: true
+          starttls:
+            enable: true
+          connectiontimeout: 5000
+          timeout: 5000
+          writetimeout: 5000
+    sender-email: ${senderEmail}
+app:
+  storage:
+    upload-dir: C:/Users/VladL/Documents/IdeaProjects/StyleMap/uploads
+  client:
+    currency-api:
+      url: https://www.cbr-xml-daily.ru/
+  security:
+    # Куда перенаправлять после успешного логина (форма или Google).
+    # Для React-фронтенда в docker-compose переопределяется на "/".
+    success-url: ${APP_SECURITY_SUCCESS_URL:/showroom/home}
+    # Origin-ы фронтенда, которым разрешены кросс-доменные запросы к API (только для dev без прокси).
+    allowed-origins: ${APP_SECURITY_ALLOWED_ORIGINS:http://localhost:5173,http://localhost:3000}
+
+server:
+  # Учитывать X-Forwarded-* заголовки от nginx/Ingress, чтобы redirect_uri для OAuth2
+  # и ссылки строились с внешним адресом, а не с адресом контейнера.
+  forward-headers-strategy: framework
+  servlet:
+    session:
+      cookie:
+        same-site: lax
+        http-only: true
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info
+  endpoint:
+    health:
+      # /actuator/health/liveness и /actuator/health/readiness
+      probes:
+        enabled: true
+      show-details: never

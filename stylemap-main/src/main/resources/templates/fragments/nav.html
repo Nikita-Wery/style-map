@@ -1,0 +1,23 @@
+<!DOCTYPE html>
+<html lang="ru" xmlns:th="http://www.thymeleaf.org">
+<body>
+
+<div th:fragment="topNav" class="top-nav">
+    <div class="nav-left">
+        <button class="nav-btn" onclick="history.back()">⬅ Назад</button>
+        <a th:href="@{/showroom/home}" class="nav-btn">На главную</a>
+    </div>
+
+    <div class="nav-right">
+        <button class="nav-btn" onclick="toggleProfileDropdown()">Профиль ▾</button>
+        <div class="profile-dropdown" id="profileDropdown">
+            <a th:href="@{/showroom/profile}" class="dropdown-item">Мой профиль</a>
+            <form th:action="@{/auth/logout}" method="post" style="margin:0;">
+                <button type="submit" class="dropdown-logout">Выйти из аккаунта</button>
+            </form>
+        </div>
+    </div>
+</div>
+
+</body>
+</html>

@@ -1,0 +1,95 @@
+services:
+  db:
+    networks:
+      - stylemap
+    container_name: stylemap-db
+    volumes:
+      - ./my_db_files:/var/lib/postgresql/data
+    image: postgres:17
+    ports:
+      - '5434:5432'
+    environment:
+      POSTGRES_USER: ${DB_USER}
+      POSTGRES_PASSWORD: ${DB_PASSWORD}
+      POSTGRES_DB: ${DB_NAME}
+    healthcheck:
+      test: [ "CMD-SHELL", "pg_isready -U postgres" ]
+      interval: 10s
+      timeout: 10s
+      retries: 10
+      start_period: 30s
+    restart: unless-stopped
+
+  # Spring Boot: REST API + (по желанию) прежние Thymeleaf-страницы.
+  backend:
+    networks:
+      - stylemap
+    build: .
+    container_name: stylemap
+    depends_on:
+      db:
+        condition: service_healthy
+      liquibase-migrations:
+        condition: service_completed_successfully
+    ports:
+      - "8080:8080"
+    environment:
+      - SPRING_DATASOURCE_URL=jdbc:postgresql://db:5432/${DB_NAME}
+      - SPRING_DATASOURCE_USERNAME=${DB_USER}
+      - SPRING_DATASOURCE_PASSWORD=${DB_PASSWORD}
+      - SPRING_SECURITY_OAUTH2_CLIENT_REGISTRATION_GOOGLE_CLIENT-ID=${CLIENT_ID}
+      - SPRING_SECURITY_OAUTH2_CLIENT_REGISTRATION_GOOGLE_CLIENT-SECRET=${CLIENT_SECRET}
+      - SPRING_MAIL_USERNAME=${SENDER_EMAIL}
+      - SPRING_MAIL_PASSWORD=${GOOGLE_APP}
+      - SPRING_MAIL_SENDER-EMAIL=${SENDER_EMAIL}
+      - APP_STORAGE_UPLOAD_DIR=/app/uploads
+      # После входа возвращаемся на React-фронтенд (тот же origin через nginx).
+      - APP_SECURITY_SUCCESS_URL=/
+      - APP_SECURITY_ALLOWED_ORIGINS=http://localhost:3000,http://localhost:5173
+      - SPRING_LIQUIBASE_ENABLED=FALSE
+    volumes:
+      - ./uploads:/app/uploads
+
+  # React SPA: статика, собранная Vite, раздаётся nginx.
+  # nginx же проксирует /api, /auth, /uploads и OAuth2 на backend.
+  frontend:
+    networks:
+      - stylemap
+    build:
+      context: ./frontend
+    container_name: stylemap-frontend
+    depends_on:
+      - backend
+    ports:
+      - "3000:80"
+    restart: unless-stopped
+    environment:
+      # Адрес бэкенда и DNS для nginx. Те же переменные, что и в k8s-манифесте,
+      # но со значениями docker-compose. В образе они заданы по умолчанию —
+      # здесь продублированы, чтобы связь была видна явно.
+      - STYLEMAP_BACKEND_HOST=backend:8080
+      - STYLEMAP_DNS_RESOLVER=127.0.0.11
+
+  liquibase-migrations:
+    networks:
+      - stylemap
+    container_name: sm_migrations
+    image: liquibase/liquibase:4.29
+    depends_on:
+      db:
+        condition: service_healthy
+    command:
+      - --log-level=debug
+      - --searchPath=/changesets
+      - --changelog-file=db.changelog-master.xml
+      - --driver=org.postgresql.Driver
+      - --url=jdbc:postgresql://db:5432/${DB_NAME}
+      - --username=${DB_USER}
+      - --password=${DB_PASSWORD}
+      - update
+    volumes:
+      - ./src/main/resources/db/changelog:/changesets
+
+networks:
+  stylemap:
+    driver: bridge

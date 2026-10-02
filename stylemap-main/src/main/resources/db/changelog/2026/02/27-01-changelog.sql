@@ -1,0 +1,57 @@
+-- liquibase formatted sql
+
+-- changeset VladL:20260227-1
+ALTER TABLE ratings
+    DROP CONSTRAINT FK_RATINGS_ON_POST;
+
+-- changeset VladL:20260227-2
+ALTER TABLE ratings
+    ADD CONSTRAINT FK_RATINGS_ON_POST FOREIGN KEY (post_id) REFERENCES posts (id) ON DELETE CASCADE;
+
+-- changeset VladL:20260227-3
+ALTER TABLE ratings
+    DROP CONSTRAINT FK_RATINGS_ON_USER;
+
+-- changeset VladL:20260227-4
+ALTER TABLE ratings
+    ADD CONSTRAINT FK_RATINGS_ON_USER FOREIGN KEY (user_id) REFERENCES users (id) ON DELETE CASCADE;
+
+-- changeset VladL:20260227-5
+ALTER TABLE posts
+    DROP CONSTRAINT FK_POSTS_ON_AUTHOR;
+
+-- changeset VladL:20260227-6
+ALTER TABLE posts
+    ADD CONSTRAINT FK_POSTS_ON_AUTHOR FOREIGN KEY (author_id) REFERENCES users (id) ON DELETE CASCADE;
+
+-- changeset VladL:20260227-7
+ALTER TABLE user_follows
+    DROP CONSTRAINT FK_USERFOLLOWS_ON_FOLLOWER;
+
+-- changeset VladL:20260227-8
+ALTER TABLE user_follows
+    ADD CONSTRAINT FK_USERFOLLOWS_ON_FOLLOWER FOREIGN KEY (follower_id) REFERENCES users (id) ON DELETE CASCADE;
+
+-- changeset VladL:20260227-9
+ALTER TABLE user_follows
+    DROP CONSTRAINT FK_USERFOLLOWS_ON_FOLLOWING;
+
+-- changeset VladL:20260227-10
+ALTER TABLE user_follows
+    ADD CONSTRAINT FK_USERFOLLOWS_ON_FOLLOWING FOREIGN KEY (following_id) REFERENCES users (id) ON DELETE CASCADE;
+
+-- changeset VladL:20260227-11
+ALTER TABLE post_hashtags
+    DROP CONSTRAINT fk_poshas_on_hashtag;
+
+-- changeset VladL:20260227-12
+ALTER TABLE post_hashtags
+    ADD CONSTRAINT fk_poshas_on_hashtag FOREIGN KEY (hashtag_id) REFERENCES hashtags (id) ON DELETE CASCADE;
+
+-- changeset VladL:20260227-13
+ALTER TABLE post_hashtags
+    DROP CONSTRAINT fk_poshas_on_post;
+
+-- changeset VladL:20260227-14
+ALTER TABLE post_hashtags
+    ADD CONSTRAINT fk_poshas_on_post FOREIGN KEY (post_id) REFERENCES posts (id) ON DELETE CASCADE;

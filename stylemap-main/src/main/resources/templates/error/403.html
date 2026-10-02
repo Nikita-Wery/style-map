@@ -1,0 +1,15 @@
+<!DOCTYPE html>
+<html lang="ru" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>Недоступно</title>
+</head>
+<body>
+<div class="error-container">
+    <h1>403</h1>
+    <h2>Упс! Ничего не найдено.</h2>
+    <p th:text="${error}"></p>
+    <a th:href="@{/showroom/home}">Вернуться на главную</a>
+</div>
+</body>
+</html>

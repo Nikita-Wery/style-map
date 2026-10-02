@@ -1,0 +1,322 @@
+<!DOCTYPE html>
+<html lang="ru" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>Новый аутфит - StyleMap</title>
+    <meta name="_csrf" th:content="${_csrf.token}"/>
+    <meta name="_csrf_header" th:content="${_csrf.headerName}"/>
+    <link rel="stylesheet" th:href="@{/css/style.css}">
+    <style>
+        .hashtag-badge { background: var(--accent-color); color: white; padding: 6px 14px; border-radius: 980px; font-size: 13px; margin: 0 8px 8px 0; display: inline-block; cursor: pointer; transition: opacity 0.2s; }
+        .hashtag-badge:hover { opacity: 0.8; }
+        .suggestions { border: 1px solid var(--border-color); border-radius: var(--radius-md); max-height: 200px; overflow-y: auto; background: white; margin-top: 10px; box-shadow: 0 4px 12px rgba(0,0,0,0.05); }
+        .suggestion-item { padding: 12px 15px; cursor: pointer; border-bottom: 1px solid #f5f5f7; }
+        .suggestion-item:hover { background: #f5f5f7; }
+
+        #mediaPreviewContainer { margin-top: 15px; text-align: center; }
+        .preview-media { max-width: 100%; max-height: 400px; border-radius: var(--radius-md); box-shadow: 0 4px 12px rgba(0,0,0,0.08); }
+    </style>
+</head>
+<body>
+
+<div class="top-nav">
+    <div class="nav-left">
+        <button class="nav-btn" onclick="history.back()">⬅ Назад</button>
+        <a th:href="@{/showroom/home}" class="nav-btn">На главную</a>
+    </div>
+    <div class="nav-right">
+        <button class="nav-btn" onclick="toggleProfileDropdown()">Профиль ▾</button>
+        <div class="profile-dropdown" id="profileDropdown">
+            <a th:href="@{/showroom/profile}" class="dropdown-item">На страницу профиля</a>
+            <form th:action="@{/auth/logout}" method="post" style="margin:0;">
+                <button type="submit" class="dropdown-logout">Выйти из аккаунта</button>
+            </form>
+        </div>
+    </div>
+</div>
+
+<div class="container" style="max-width: 800px;">
+    <h2 style="margin-bottom: 30px; text-align: center;">Опубликовать Аутфит</h2>
+
+    <form id="megaPostForm" style="max-width: 100%;">
+        <div class="box">
+            <label style="font-weight: 600; margin-bottom: 8px; display: block;">Описание:</label>
+            <textarea id="description" rows="3" placeholder="Расскажите о своем образе..." required></textarea>
+
+            <label style="font-weight: 600; margin: 15px 0 8px 0; display: block;">Медиа (Фото/Видео):</label>
+            <input type="file" id="mediaFile" accept="image/*, video/*" required>
+
+            <div id="mediaPreviewContainer"></div>
+        </div>
+
+        <div class="box">
+            <label style="font-weight: 600; margin-bottom: 8px; display: block;">Хештеги (начни вводить, например, anime):</label>
+            <div style="display: flex; gap: 10px;">
+                <input type="text" id="hashtagInput" autocomplete="off" placeholder="#..." style="flex: 1;">
+                <button type="button" onclick="addNewHashtagManually()" class="btn-secondary">Создать свой</button>
+            </div>
+
+            <div id="suggestions" class="suggestions" style="display: none;"></div>
+            <div id="selectedHashtagsContainer" style="margin-top: 15px;"></div>
+        </div>
+
+        <div class="box">
+            <h3 style="margin-bottom: 15px;">Одежда на фото</h3>
+            <div id="outfitItemsContainer"></div>
+            <button type="button" onclick="addOutfitItem()" class="btn-secondary" style="width: 100%;">+ Добавить вещь</button>
+        </div>
+
+        <button type="submit" style="width: 100%; font-size: 16px; padding: 16px;">
+            Опубликовать пост
+        </button>
+
+        <div id="statusMessage" style="margin-top: 15px; font-weight: 600; text-align: center;"></div>
+    </form>
+</div>
+
+<script th:src="@{/js/main.js}"></script>
+
+<script>
+    const mediaFileInput = document.getElementById('mediaFile');
+    const previewContainer = document.getElementById('mediaPreviewContainer');
+
+    mediaFileInput.addEventListener('change', function(event) {
+        previewContainer.innerHTML = '';
+        const file = event.target.files[0];
+
+        if (file) {
+            const fileURL = URL.createObjectURL(file);
+
+            if (file.type.startsWith('image/')) {
+                const img = document.createElement('img');
+                img.src = fileURL;
+                img.className = 'preview-media';
+                previewContainer.appendChild(img);
+            } else if (file.type.startsWith('video/')) {
+                const video = document.createElement('video');
+                video.src = fileURL;
+                video.controls = true;
+                video.className = 'preview-media';
+                previewContainer.appendChild(video);
+            }
+        }
+    });
+    let selectedHashtags = [];
+    let currentHashtagPage = 0;
+    let currentHashtagQuery = '';
+
+    const hashtagInput = document.getElementById('hashtagInput');
+    const suggestionsDiv = document.getElementById('suggestions');
+
+    let timeout = null;
+    hashtagInput.addEventListener('input', (e) => {
+        clearTimeout(timeout);
+        currentHashtagQuery = e.target.value.trim();
+        if (currentHashtagQuery.length < 1) {
+            suggestionsDiv.style.display = 'none';
+            return;
+        }
+        timeout = setTimeout(() => {
+            currentHashtagPage = 0;
+            suggestionsDiv.innerHTML = '';
+            fetchHashtags();
+        }, 300);
+    });
+
+    function fetchHashtags() {
+        fetch(`/api/hashtags/search?q=${currentHashtagQuery}&page=${currentHashtagPage}&size=5`)
+            .then(res => res.json())
+            .then(data => {
+                suggestionsDiv.style.display = 'block';
+
+                data.tags.forEach(tag => {
+                    const div = document.createElement('div');
+                    div.className = 'suggestion-item';
+                    div.innerText = tag.path;
+                    div.onclick = () => selectHashtag(tag.path);
+                    suggestionsDiv.appendChild(div);
+                });
+
+                const loadMoreBtn = document.getElementById('loadMoreTagsBtn');
+                if (loadMoreBtn) loadMoreBtn.remove();
+
+                if (data.hasNext || currentHashtagPage < data.totalPages - 1) {
+                    const btn = document.createElement('button');
+                    btn.id = 'loadMoreTagsBtn';
+                    btn.type = 'button';
+                    btn.className = 'btn-secondary';
+                    btn.innerText = 'Загрузить еще...';
+                    btn.style.width = '100%';
+                    btn.style.borderRadius = '0';
+                    btn.onclick = () => {
+                        currentHashtagPage++;
+                        btn.innerText = 'Загрузка...';
+                        fetchHashtags();
+                    };
+                    suggestionsDiv.appendChild(btn);
+                }
+            });
+    }
+
+    function selectHashtag(path) {
+        if (!selectedHashtags.includes(path)) {
+            selectedHashtags.push(path);
+            renderSelectedHashtags();
+        }
+        hashtagInput.value = '';
+        suggestionsDiv.style.display = 'none';
+    }
+
+    function addNewHashtagManually() {
+        let vals = hashtagInput.value.trim().toLowerCase().split(' ');
+        vals.forEach(val => {
+            val = val.replaceAll('#', '');
+            if (val && !selectedHashtags.includes(val)) {
+                selectedHashtags.push(val);
+            }
+        })
+        renderSelectedHashtags();
+        hashtagInput.value = '';
+        suggestionsDiv.style.display = 'none';
+    }
+
+    function renderSelectedHashtags() {
+        const container = document.getElementById('selectedHashtagsContainer');
+        container.innerHTML = '';
+        selectedHashtags.forEach(tag => {
+            const span = document.createElement('span');
+            span.className = 'hashtag-badge';
+            span.innerText = "#" + tag + " ✖";
+            span.onclick = () => {
+                selectedHashtags = selectedHashtags.filter(t => t !== tag);
+                renderSelectedHashtags();
+            };
+            container.appendChild(span);
+        });
+    }
+
+    let itemCounter = 0;
+
+    function addOutfitItem() {
+        const container = document.getElementById('outfitItemsContainer');
+        const itemDiv = document.createElement('div');
+        itemDiv.className = 'box outfit-item';
+        itemDiv.id = 'item_' + itemCounter;
+
+        itemDiv.innerHTML = `
+            <div style="display: flex; gap: 10px; align-items: center; margin-bottom: 10px;">
+                <input type="text" placeholder="Название (напр. Черный плащ)" class="item-name" required style="flex: 1;">
+                <input type="text" placeholder="Бренд" class="item-brand" style="flex: 1;">
+                <button type="button" onclick="this.closest('.outfit-item').remove()" class="btn-danger" style="padding: 10px 15px;">✕</button>
+            </div>
+            <div class="links-container"></div>
+            <button type="button" onclick="addLink(this.previousElementSibling)" class="btn-secondary" style="font-size: 13px; margin-top: 5px;">+ Добавить ссылку (Где купить)</button>
+        `;
+        container.appendChild(itemDiv);
+        itemCounter++;
+    }
+
+    function addLink(linksContainer) {
+        const linkDiv = document.createElement('div');
+        linkDiv.className = 'link-box';
+        linkDiv.style = "display: flex; gap: 8px; margin-top: 10px; align-items: center; padding-top: 10px; border-top: 1px solid var(--border-color);";
+
+        linkDiv.innerHTML = `
+            <select class="link-country" required style="width: 100px;">
+                <option value="RU">RU</option>
+                <option value="US">US</option>
+                <option value="EU">EU</option>
+                <option value="CN">CN</option>
+            </select>
+            <input type="url" placeholder="Ссылка (https://...)" class="link-url" required style="flex: 1;">
+            <input type="number" step="0.01" placeholder="Цена" class="link-price" required style="width: 100px;">
+            <select class="link-currency" required style="width: 100px;">
+                <option value="RUB">RUB</option>
+                <option value="USD">USD</option>
+                <option value="EUR">EUR</option>
+                <option value="CNY">CNY</option>
+                <option value="KZT">KZT</option>
+                <option value="BYN">BYN</option>
+            </select>
+            <button type="button" onclick="this.parentElement.remove()" class="btn-danger" style="padding: 10px 15px;">✕</button>
+        `;
+        linksContainer.appendChild(linkDiv);
+    }
+    document.getElementById('megaPostForm').addEventListener('submit', function(e) {
+        e.preventDefault();
+
+        const submitBtn = e.target.querySelector('button[type="submit"]');
+        submitBtn.disabled = true;
+        submitBtn.innerText = "Отправка...";
+
+        const statusDiv = document.getElementById('statusMessage');
+        statusDiv.style.color = "var(--text-primary)";
+        statusDiv.innerText = "Подготовка данных и отправка...";
+
+        const outfitItems = [];
+        document.querySelectorAll('.outfit-item').forEach(itemNode => {
+            const name = itemNode.querySelector('.item-name').value;
+            const brand = itemNode.querySelector('.item-brand').value;
+
+            const links = {};
+            itemNode.querySelectorAll('.link-box').forEach(linkNode => {
+                const country = linkNode.querySelector('.link-country').value;
+                links[country] = {
+                    url: linkNode.querySelector('.link-url').value,
+                    price: parseFloat(linkNode.querySelector('.link-price').value),
+                    currency: linkNode.querySelector('.link-currency').value
+                };
+            });
+
+            outfitItems.push({ name, brand, links });
+        });
+
+        const postData = {
+            description: document.getElementById('description').value,
+            hashtags: selectedHashtags,
+            outfitItems: outfitItems
+        };
+
+        const formData = new FormData();
+        formData.append('file', document.getElementById('mediaFile').files[0]);
+        formData.append('postData', JSON.stringify(postData));
+
+        const csrfToken = document.querySelector("meta[name='_csrf']").getAttribute("content");
+        const csrfHeader = document.querySelector("meta[name='_csrf_header']").getAttribute("content");
+
+        fetch('/api/posts', {
+            method: 'POST',
+            headers: { [csrfHeader]: csrfToken },
+            body: formData
+        })
+            .then(res => res.json())
+            .then(data => {
+                if (data.status === "success") {
+                    statusDiv.style.color = "var(--success)";
+                    statusDiv.innerText = data.message + " Перенаправление в ленту...";
+
+                    setTimeout(() => {
+                        window.location.href = '/showroom/home';
+                    }, 100);
+
+                } else {
+                    statusDiv.style.color = "var(--danger)";
+                    statusDiv.innerText = data.message || "Ошибка сервера";
+
+                    submitBtn.disabled = false;
+                    submitBtn.innerText = "Опубликовать пост";
+                }
+            })
+            .catch(err => {
+                statusDiv.style.color = "var(--danger)";
+                statusDiv.innerText = "Ошибка сети!";
+                console.error(err);
+
+                submitBtn.disabled = false;
+                submitBtn.innerText = "Опубликовать пост";
+            });
+    });
+</script>
+
+</body>
+</html>

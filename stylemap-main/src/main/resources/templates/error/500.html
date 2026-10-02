@@ -1,0 +1,15 @@
+<!DOCTYPE html>
+<html lang="ru" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>Ошибка сервера</title>
+</head>
+<body>
+<div class="error-container">
+    <h1>500</h1>
+    <h2>Сервер устал, но мы его починим.</h2>
+    <p th:text="${error}">Внутренняя ошибка сервера.</p>
+    <a th:href="@{/showroom/home}">Вернуться на главную</a>
+</div>
+</body>
+</html>

@@ -1,0 +1,202 @@
+<!DOCTYPE html>
+<html lang="ru" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>Лента StyleMap</title>
+    <link rel="stylesheet" th:href="@{/css/style.css}">
+    <style>
+        .search-container { max-width: 600px; margin: 0 auto 30px auto; position: relative; }
+        .search-input { width: 100%; padding: 16px 24px; font-size: 16px; border-radius: 980px; box-shadow: 0 4px 12px rgba(0,0,0,0.05); }
+        .suggestions { position: absolute; top: 100%; left: 0; right: 0; background: var(--card-bg); border-radius: var(--radius-md); box-shadow: 0 10px 30px rgba(0,0,0,0.1); z-index: 1000; overflow: hidden; margin-top: 8px;}
+        .suggestion-item { padding: 12px 20px; cursor: pointer; border-bottom: 1px solid #f5f5f7; }
+        .suggestion-item:hover { background: #f5f5f7; }
+        .filters-container { max-width: 1200px; margin: 0 auto 20px auto; display: flex; justify-content: space-between; align-items: center; background: var(--card-bg); padding: 15px 20px; border-radius: var(--radius-md); box-shadow: 0 2px 8px rgba(0,0,0,0.02); }
+    </style>
+</head>
+<body>
+<div th:replace="~{fragments/nav :: topNav}">
+    <div class="top-nav">
+        <div class="nav-left"><strong style="font-size: 18px;">StyleMap</strong></div>
+        <div class="nav-right">
+            <button class="nav-btn" onclick="toggleProfileDropdown()">Профиль ▾</button>
+            <div class="profile-dropdown" id="profileDropdown">
+                <a th:href="@{/showroom/profile}" class="dropdown-item">На страницу профиля</a>
+                <form th:action="@{/auth/logout}" method="post" style="margin:0;">
+                    <button type="submit" class="dropdown-logout">Выйти из аккаунта</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="search-container">
+    <input type="text" id="searchInput" class="search-input" placeholder="Искать аутфиты (например, anime.bleach)..." autocomplete="off">
+    <div id="searchSuggestions" class="suggestions" style="display: none;"></div>
+</div>
+
+<div id="currentFilter" style="text-align: center; margin-bottom: 20px; display: none;">
+    <span style="background: var(--accent-color); color: white; padding: 8px 16px; border-radius: 980px; font-size: 14px;">
+        Поиск по: <b id="filterTag"></b>
+        <span style="cursor: pointer; margin-left: 10px;" onclick="resetSearch()">✖</span>
+    </span>
+</div>
+
+<div class="filters-container">
+    <div style="display: flex; align-items: center; gap: 10px;">
+        <label for="sortSelect" style="font-weight: 600; color: var(--text-secondary);">Сортировать:</label>
+        <select id="sortSelect" onchange="applyFilters()" style="width: auto;">
+            <option value="date_desc">Сначала новые</option>
+            <option value="date_asc">Сначала старые</option>
+            <option value="rating_desc">Самые высокооцененные</option>
+        </select>
+    </div>
+    <div style="display: flex; align-items: center; gap: 10px;">
+        <input type="checkbox" id="followingCheckbox" onchange="applyFilters()" style="width: auto;">
+        <label for="followingCheckbox" style="font-weight: 600; cursor: pointer;">Только мои подписки</label>
+    </div>
+</div>
+
+<div class="masonry-grid" id="feedGrid"></div>
+<div id="scrollAnchor" class="loader">Загружаем аутфиты...</div>
+
+<script th:src="@{/js/main.js}"></script>
+<script>
+    let currentSort = 'date_desc';
+    let isFollowingOnly = false;
+    let currentPage = 0;
+    let isFetching = false;
+    let hasMore = true;
+    let currentHashtag = '';
+
+    const feedGrid = document.getElementById('feedGrid');
+    const scrollAnchor = document.getElementById('scrollAnchor');
+    const urlParams = new URLSearchParams(window.location.search);
+    const paramHashtag = urlParams.get('hashtag');
+
+    if (paramHashtag) {
+        currentHashtag = paramHashtag;
+        document.getElementById('currentFilter').style.display = 'block';
+        document.getElementById('filterTag').innerText = "#" + currentHashtag;
+    }
+
+    async function loadPosts() {
+        if (isFetching || !hasMore) return;
+        isFetching = true;
+        scrollAnchor.style.display = 'block';
+        scrollAnchor.innerText = 'Загружаем аутфиты...';
+
+        try {
+            const url = `/api/posts/feed?page=${currentPage}&size=10&hashtag=${encodeURIComponent(currentHashtag)}&sortBy=${currentSort}&followingOnly=${isFollowingOnly}`;
+            const response = await fetch(url);
+            const data = await response.json();
+
+            data.content.forEach(post => {
+                const card = document.createElement('div');
+                card.className = 'post-card';
+                card.onclick = () => window.location.href = `/showroom/post/${post.id}`;
+
+                if (post.mediaType === 'VIDEO') {
+                    card.innerHTML = `<video src="${post.mediaUrl}" class="post-media" autoplay muted loop></video>`;
+                } else {
+                    card.innerHTML = `<img src="${post.mediaUrl}" class="post-media" loading="lazy" alt="Outfit">`;
+                }
+                feedGrid.appendChild(card);
+            });
+
+            currentPage++;
+            hasMore = !data.last;
+        } catch (e) {
+            console.error("Ошибка загрузки ленты:", e);
+        } finally {
+            isFetching = false;
+            if (!hasMore) {
+                scrollAnchor.style.display = 'block';
+                scrollAnchor.innerText = 'Вы посмотрели все аутфиты! 🎉';
+            } else {
+                scrollAnchor.style.display = 'block';
+                scrollAnchor.innerText = 'Крутите вниз для загрузки...';
+                if (scrollAnchor.getBoundingClientRect().top <= window.innerHeight + 200) {
+                    loadPosts();
+                }
+            }
+        }
+    }
+
+    const observer = new IntersectionObserver(entries => {
+        if (entries[0].isIntersecting) loadPosts();
+    }, { rootMargin: "200px" });
+    observer.observe(scrollAnchor);
+
+    const searchInput = document.getElementById('searchInput');
+    const suggestionsDiv = document.getElementById('searchSuggestions');
+    let searchTimeout = null;
+
+    searchInput.addEventListener('input', (e) => {
+        clearTimeout(searchTimeout);
+        const query = e.target.value.trim();
+        if (query.length < 1) { suggestionsDiv.style.display = 'none'; return; }
+        searchTimeout = setTimeout(() => {
+            fetch(`/api/hashtags/search?q=${query}&page=0&size=5`)
+                .then(res => res.json())
+                .then(data => {
+                    suggestionsDiv.innerHTML = '';
+                    if(data.tags.length > 0) {
+                        suggestionsDiv.style.display = 'block';
+                        data.tags.forEach(tag => {
+                            const div = document.createElement('div');
+                            div.className = 'suggestion-item';
+                            div.innerText = "#" + tag.path;
+                            div.onclick = () => applySearch(tag.path);
+                            suggestionsDiv.appendChild(div);
+                        });
+                    } else { suggestionsDiv.style.display = 'none'; }
+                });
+        }, 300);
+    });
+
+    searchInput.addEventListener('keypress', (e) => {
+        if (e.key === 'Enter') {
+            applySearch(searchInput.value.trim());
+            suggestionsDiv.style.display = 'none';
+        }
+    });
+
+    function applySearch(hashtag) {
+        if (!hashtag) return;
+        currentHashtag = hashtag;
+        currentPage = 0; hasMore = true; feedGrid.innerHTML = '';
+        document.getElementById('currentFilter').style.display = 'block';
+        document.getElementById('filterTag').innerText = "#" + hashtag;
+        searchInput.value = '';
+        document.getElementById('searchSuggestions').style.display = 'none';
+        const url = new URL(window.location);
+        url.searchParams.set('hashtag', hashtag);
+        window.history.replaceState({}, '', url);
+        loadPosts();
+    }
+
+    function applyFilters() {
+        currentSort = document.getElementById('sortSelect').value;
+        isFollowingOnly = document.getElementById('followingCheckbox').checked;
+        currentPage = 0; hasMore = true; feedGrid.innerHTML = '';
+        loadPosts();
+    }
+
+    function resetSearch() {
+        currentHashtag = ''; currentPage = 0; hasMore = true; feedGrid.innerHTML = '';
+        document.getElementById('currentFilter').style.display = 'none';
+        const url = new URL(window.location);
+        url.searchParams.delete('hashtag');
+        window.history.replaceState({}, '', url);
+        loadPosts();
+    }
+
+    document.addEventListener('click', function(event) {
+        const searchContainer = document.querySelector('.search-container');
+        if (!searchContainer.contains(event.target)) suggestionsDiv.style.display = 'none';
+    });
+
+    loadPosts();
+</script>
+</body>
+</html>
