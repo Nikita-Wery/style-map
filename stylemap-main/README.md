@@ -1,337 +1,145 @@
 # StyleMap
 
-Социальная платформа для аутфитов: лента постов, хештеги, рейтинги, подписки и список
-вещей «где купить» с конвертацией валют.
+Социальная платформа для публикации аутфитов: посты с фото/видео, вещи и ссылки
+«где купить», хештеги, оценки, подписки и конвертация валют.
 
-Три сервиса: **frontend** (nginx + React SPA), **backend** (Spring Boot 4 / Java 25),
-**db** (PostgreSQL 17).
+## Запуск для проверки задания
 
-```
-Браузер ──▶ nginx ──┬── /                             → статика React (index.html + /assets)
-                    ├── /api/**                       → backend :8080
-                    ├── /auth/**                      → backend :8080
-                    ├── /uploads/**                   → backend :8080
-                    └── /oauth2/**, /login/oauth2/**  → backend :8080
-```
-
-nginx проксирует API на бэкенд, поэтому для браузера всё живёт на одном origin.
-Благодаря этому сессионная cookie `JSESSIONID` и CSRF-токен работают без CORS.
-
----
-
-## Google OAuth2: почему нужно регистрировать redirect URI
-
-**Короткий ответ:** это требование Google, а не архитектуры проекта. И `localhost:3000`
-— не «обязательное» значение, а просто тот адрес, по которому браузер открывал
-приложение в docker-compose. В Kubernetes адрес другой — значит, регистрировать надо
-другой.
-
-### Механика
-
-1. Пользователь нажимает «Войти через Google» → браузер идёт на
-   `/oauth2/authorization/google` **по тому адресу, который открыт в строке браузера**.
-2. Spring Security формирует `redirect_uri` из этого запроса: схема + хост + порт
-   (через заголовки `X-Forwarded-Proto` / `X-Forwarded-Host`, которые проставляет nginx).
-3. Браузер уходит на Google с этим `redirect_uri` в параметрах.
-4. Google сверяет его со списком *Authorized redirect URIs* в вашем OAuth-клиенте.
-   **Совпадение должно быть точным, посимвольным.** Если его нет — Google отвечает
-   ошибкой `redirect_uri_mismatch` и вход не выполняется.
-
-Так сделано для безопасности: без белого списка злоумышленник мог бы подставить свой
-`redirect_uri` и перехватить код авторизации.
-
-### Ограничения Google
-
-- **HTTPS обязателен** для всех адресов, кроме `localhost` и `127.0.0.1`.
-- **IP-адрес в `redirect_uri` не принимается.**
-
-Поэтому `http://192.168.49.2:30080/login/oauth2/code/google` (NodePort minikube)
-**не заработает, даже если вписать его в консоль**. Это ключевой момент для Kubernetes.
-
-### Как получить рабочий адрес в Kubernetes
-
-**Вариант A — быстро, для локального кластера (рекомендуется для minikube)**
-
-Пробрасываем сервис на localhost — тогда Google разрешает обычный HTTP:
+Основное окружение — **Docker Compose**. Нужны Docker с Compose v2 и доступ
+к интернету для загрузки образов и зависимостей. Java, Maven и Node.js на хосте
+не нужны: Docker собирает backend из исходников и frontend из npm lockfile.
+Все команды выполняются из каталога с `docker-compose.yml`.
 
 ```bash
-kubectl -n stylemap port-forward svc/front-service 8080:80
+cp .env.example .env
+# При необходимости отредактируйте .env (см. ниже).
+docker compose up --build
 ```
 
-Открывать `http://localhost:8080`, зарегистрировать в Google Console:
+Открыть **http://localhost:3000**. Backend доступен напрямую на
+**http://localhost:8080**, PostgreSQL — на **localhost:5434**.
+Порты 3000, 8080 и 5434 должны быть свободны.
 
-```
-http://localhost:8080/login/oauth2/code/google
-```
+`.env.example` содержит только вымышленные значения. Укажите собственный
+`DB_PASSWORD`. Google OAuth параметры в шаблоне фиктивны; вход через Google требует
+настоящих `GOOGLE_CLIENT_ID` и `GOOGLE_CLIENT_SECRET`. В консоли Google зарегистрируйте redirect URI:
+`http://localhost:3000/login/oauth2/code/google`.
 
-**Вариант B — по-настоящему (Ingress + домен + TLS)**
+Регистрация по паролю отправляет код подтверждения через SMTP. Для рабочего
+сценария задайте `MAIL_HOST`, `MAIL_PORT`, `MAIL_USERNAME`, `MAIL_PASSWORD` и
+`MAIL_SENDER_EMAIL`; для Gmail нужен пароль приложения. Фиктивные SMTP данные
+не обеспечивают отправку писем. Почтовая конфигурация использует авторизацию
+и STARTTLS. Реальные секреты храните только в локальном `.env`.
+
+### Порядок старта и диагностика
+
+Compose ждёт готовности PostgreSQL, запускает одноразовый сервис
+`liquibase-migrations`, затем backend и после его readiness-проверки frontend.
+Статус завершившегося сервиса миграций `Exited (0)` нормален.
 
 ```bash
-minikube addons enable ingress
+docker compose ps -a
+docker compose logs backend liquibase-migrations
+docker compose down
 ```
 
-Добавляете Ingress с реальным доменом и сертификатом (например, cert-manager и
-Let's Encrypt), открываете `https://stylemap.example.com`, регистрируете:
+Не публикуйте диагностические выводы без проверки: конфигурация и сообщения
+ошибок могут содержать чувствительные данные. Не используйте реальные секреты
+при отправке исходников преподавателю.
 
-```
-https://stylemap.example.com/login/oauth2/code/google
-```
+PostgreSQL хранится в `my_db_files/`, медиа — в `uploads/`. Эти каталоги остаются
+после `docker compose down` и пересоздания контейнеров. Изменение DB_USER,
+DB_PASSWORD или DB_NAME в `.env` не изменяет учётные данные уже созданной БД.
+Не удаляйте каталоги, если нужны сохранённые данные.
 
-### Если нужен жёстко зафиксированный адрес
+Логи приложения выводятся в stdout, без файловых appender-ов.
+`SHOW_SQL=false` по умолчанию; для локальной диагностики можно поставить `true`.
 
-По умолчанию Spring вычисляет `redirect_uri` из запроса — это правильно для любого
-окружения. Если хочется зафиксировать его явно (например, чтобы не зависеть от того,
-какие заголовки присылает Ingress), задайте переменную окружения:
+## Архитектура и стек
 
-```
-SPRING_SECURITY_OAUTH2_CLIENT_REGISTRATION_GOOGLE_REDIRECT_URI=https://stylemap.example.com/login/oauth2/code/google
-```
+- Backend: Java 25, Spring Boot 4.0.3, Spring Security, JPA/Hibernate, Liquibase.
+- База: PostgreSQL 17 с `ltree` и JSONB.
+- Frontend: React 19, TypeScript, Vite, Tailwind CSS 4, React Router.
+- nginx отдаёт SPA и проксирует `/api/`, `/auth/`, `/uploads/`, `/oauth2/`
+  и `/login/oauth2/` на backend.
 
-При этом адрес всё равно должен быть в белом списке Google.
+Frontend обращается к backend по HTTP через `fetch`. Используются сессионная
+cookie и CSRF заголовок; nginx сохраняет единый origin. Старые Thymeleaf страницы
+остаются на backend: `/auth/login`, `/showroom/home`, `/admin`.
 
-> Вход по логину и паролю (`/api/auth/login`) и регистрация от OAuth никак не зависят
-> и работают без всякой настройки Google.
+Сборка backend многостадийная: JDK и Maven wrapper работают только в build-слое,
+финальный образ содержит JRE и JAR. Frontend собирается через `npm ci`, затем
+готовая статика переносится в nginx. Миграции лежат в исходниках и выполняются
+отдельным процессом; в Compose миграции внутри backend отключены.
 
----
+## API и CRUD
 
-## Быстрый старт: Docker Compose
+Все `/api/` маршруты, кроме аутентификации, требуют входа; `/api/admin/` требует
+роль ADMIN. Создание поста принимает multipart `file` и JSON-строку `postData`.
 
-### 1. Соберите jar бэкенда
+| Область | Маршруты |
+|---|---|
+| Аутентификация | `/api/auth/me`, `/csrf`, `/login`, `/register`, `/confirm`, `/logout` |
+| Посты | POST `/api/posts`, GET `/api/posts/feed`, GET `/api/posts/{id}`, GET `/api/posts/user/{userId}` |
+| Изменение поста | PUT и DELETE `/api/actions/posts/{id}` |
+| Оценки | POST `/api/actions/posts/{id}/rate?score=…` |
+| Подписки | POST `/api/actions/users/{id}/toggle-follow` |
+| Валюты | GET `/api/actions/convert-currency` |
+| Профили | GET `/api/users/{username}` |
+| Хештеги | GET `/api/hashtags/search?q=…` |
+| Администрирование | `/api/admin/users`, `/api/admin/posts`, `/api/admin/hashtags` |
+| Готовность backend | GET `/actuator/health/readiness` (включает БД) |
 
-`Dockerfile` бэкенда копирует уже собранный `target/*.jar`, поэтому сначала:
+Администратор не создаётся автоматически. Процедура первоначального назначения
+роли должна быть проверена и задокументирована на этапе runtime-проверки.
 
-```bash
-./mvnw clean package -DskipTests
-```
+## Локальная разработка
 
-### 2. Проверьте `.env`
-
-```dotenv
-DB_NAME=postgres
-DB_USER=postgres
-DB_PASSWORD=postgres
-CLIENT_ID=<google-oauth-client-id>
-CLIENT_SECRET=<google-oauth-client-secret>
-SENDER_EMAIL=<gmail-адрес для писем подтверждения>
-GOOGLE_APP=<app password от Gmail>
-```
-
-### 3. Запустите
-
-```bash
-docker compose up -d --build
-```
-
-Приложение: **http://localhost:3000**
-
-Liquibase в compose вынесен в отдельный сервис `liquibase-migrations`, который
-отрабатывает до старта бэкенда (у приложения `SPRING_LIQUIBASE_ENABLED=FALSE`).
-
-> Прежние Thymeleaf-страницы по-прежнему доступны напрямую на **http://localhost:8080**
-> (`/auth/login`, `/showroom/home`, `/admin`) — оставлены как рабочий фолбэк.
-
----
-
-## Kubernetes
-
-Манифесты лежат в `k8s/` и собираются через Kustomize:
-
-```bash
-kubectl apply -k k8s/
-```
-
-### Переменные окружения фронтенда (важно!)
-
-Образ nginx универсальный: конфиг `frontend/default.conf.template` подставляется через
-`envsubst` при старте контейнера. Значения по умолчанию (в `Dockerfile`) — топология
-docker-compose, в Kubernetes они переопределяются в
-`k8s/frontend/frontend-deployment.yaml`:
-
-| Переменная | docker-compose | Kubernetes |
-|---|---|---|
-| `STYLEMAP_BACKEND_HOST` | `backend:8080` | `back-service.stylemap.svc.cluster.local:8080` |
-| `STYLEMAP_DNS_RESOLVER` | `127.0.0.11` (DNS Docker) | `kube-dns.kube-system.svc.cluster.local` (CoreDNS) |
-
-Два подводных камня, из-за которых всё API отдаёт **502 Bad Gateway**:
-
-1. `127.0.0.11` — это встроенный DNS Docker, в Kubernetes его нет. В логе nginx будет
-   `recv() failed (111: Connection refused) while resolving, resolver: 127.0.0.11:53`.
-2. **nginx не применяет search-домены из `/etc/resolv.conf`.** Короткое имя
-   `back-service` не резолвится, нужно полное:
-   `back-service.<namespace>.svc.cluster.local`.
-
-### Пробы
-
-Бэкенд отдаёт `/actuator/health/liveness` и `/actuator/health/readiness`
-(`management.endpoint.health.probes.enabled: true`). Пути `/actuator/health/**`
-разрешены без аутентификации в `SecurityConfig`.
-
-readiness проверяет и БД — пока база недоступна, трафик на под не идёт.
-liveness от БД намеренно не зависит, иначе её падение вызывало бы перезапуск пода.
-
-### Обновление образов
-
-В манифестах стоит `imagePullPolicy: IfNotPresent`. Если пересобрать образ
-**с тем же тегом**, Kubernetes не станет его скачивать. Поэтому либо поднимайте тег
-(`:v2` → `:v3`), либо после сборки делайте:
-
-```bash
-kubectl -n stylemap rollout restart deployment/backend-deployment deployment/frontend-deployment
-```
-
-### Доступ к приложению
-
-Сервисы опубликованы как NodePort:
-
-| Сервис | NodePort | Назначение |
-|---|---|---|
-| `front-service` | `30080` | SPA + прокси на API |
-| `back-service` | `30030` | бэкенд напрямую (Thymeleaf-страницы) |
-
----
-
-## Локальная разработка (без Docker)
-
-Нужны PostgreSQL и Java 25. Поднимите только базу:
+Нужны Java 25 и Node.js 22; Maven загружается wrapper-ом. Поднимите PostgreSQL:
 
 ```bash
 docker compose up -d db
 ```
 
-**Бэкенд** (порт 8080):
+Перед запуском backend экспортируйте переменные из `.env` в окружение процесса
+(сам Spring Boot файл `.env` не читает). Для произвольного имени БД задайте
+`SPRING_DATASOURCE_URL=jdbc:postgresql://localhost:5434/<DB_NAME>`.
+`APP_STORAGE_UPLOAD_DIR` по умолчанию равен `./uploads`.
+Локально Liquibase включён и выполняется при старте приложения.
 
 ```bash
 ./mvnw spring-boot:run
 ```
 
-**Фронтенд** (порт 5173, горячая перезагрузка):
+В другом терминале:
 
 ```bash
 cd frontend
-npm install
+npm ci
 npm run dev
 ```
 
-Vite проксирует `/api`, `/auth`, `/uploads` и `/oauth2` на `http://localhost:8080`
-(переопределяется через `VITE_PROXY_TARGET`), поэтому cookie и CSRF работают так же,
-как в production. Открывайте **http://localhost:5173**.
+Открыть **http://localhost:5173**. Vite проксирует запросы на localhost:8080.
+При другом адресе задайте `VITE_PROXY_TARGET` в окружении команды Vite.
 
-### Полезные команды фронтенда
+## Ограничения и статус проверки
 
-```bash
-npm run build       # проверка типов (tsc --noEmit) + production-сборка в dist/
-npm run typecheck   # только проверка типов
-npm run preview     # локальный просмотр собранной статики
-```
+Backend рассчитан на один экземпляр. Сессии находятся в памяти и теряются при
+перезапуске. Медиа сохраняется в локальном каталоге; в PostgreSQL хранятся записи
+и пути, но не байты файлов. Полная stateless-модель и распределённое хранение
+в рамки задания не добавляются. Конвертация валют зависит от внешнего HTTP API,
+регистрация — от SMTP, Google OAuth — от внешнего провайдера.
 
----
+Статические проверки и результаты сборок фиксируются отдельно. Успешную работу
+всех маршрутов, миграций и сценариев нельзя считать подтверждённой до проверки
+запущенного приложения. Kubernetes для сдачи не используется.
 
-## Аутентификация
+## Состав ZIP
 
-Используется **сессионная** аутентификация Spring Security — та же, что и для
-Thymeleaf-страниц. Пользователь, вошедший через SPA, виден и на серверных страницах,
-и наоборот.
+В архив включаются `src/`, `frontend/src/`, frontend конфигурация и lockfile,
+`pom.xml`, `.mvn/`, оба wrapper-скрипта, Dockerfiles, Compose, README и безопасный
+`.env.example`. После runtime-проверки будет добавлен обязательный `Отчёт.md`.
 
-Схема с CSRF:
-
-1. При первом запросе Spring кладёт токен в cookie `XSRF-TOKEN` (доступна из JavaScript).
-2. React читает её и отправляет значение в заголовке `X-XSRF-TOKEN` при каждом
-   небезопасном запросе (`POST`/`PUT`/`PATCH`/`DELETE`).
-3. Thymeleaf-формы продолжают работать через скрытое поле `_csrf`.
-
-За это отвечают `SpaCsrfTokenRequestHandler` и `CsrfCookieFilter` в пакете `config`.
-
-Для запросов к `/api/**` неавторизованный доступ возвращает **401 в формате JSON**
-(а не редирект на HTML-страницу логина), чтобы SPA мог сам обработать ситуацию.
-
----
-
-## REST API
-
-### Аутентификация — `/api/auth`
-
-| Метод | Путь | Описание |
-|---|---|---|
-| `GET` | `/api/auth/me` | Текущий пользователь или `401` |
-| `GET` | `/api/auth/csrf` | Актуальный CSRF-токен |
-| `POST` | `/api/auth/login` | Вход по `{username, password}` |
-| `POST` | `/api/auth/register` | Регистрация, отправляет код на почту |
-| `POST` | `/api/auth/confirm` | Подтверждение по `{email, code}` |
-| `POST` | `/api/auth/logout` | Выход, инвалидация сессии |
-
-### Посты — `/api/posts`, `/api/actions`
-
-| Метод | Путь | Описание |
-|---|---|---|
-| `GET` | `/api/posts/feed` | Лента (`hashtag`, `page`, `size`, `sortBy`, `followingOnly`) |
-| `GET` | `/api/posts/{id}` | Детали поста |
-| `GET` | `/api/posts/user/{userId}` | Посты пользователя |
-| `POST` | `/api/posts` | Создание поста (`multipart/form-data`) |
-| `PUT` | `/api/actions/posts/{id}` | Редактирование (только автор) |
-| `DELETE` | `/api/actions/posts/{id}` | Удаление (автор или админ) |
-| `POST` | `/api/actions/posts/{id}/rate?score=` | Оценка 1–10 |
-| `POST` | `/api/actions/users/{id}/toggle-follow` | Подписаться / отписаться |
-| `GET` | `/api/actions/convert-currency` | Конвертация валюты |
-
-### Прочее
-
-| Метод | Путь | Описание |
-|---|---|---|
-| `GET` | `/api/users/{username}` | Профиль пользователя |
-| `GET` | `/api/hashtags/search?q=` | Автокомплит хештегов |
-| `GET/POST/PATCH/DELETE` | `/api/admin/users` | Управление пользователями (роль `ADMIN`) |
-| `GET/POST/PUT/DELETE` | `/api/admin/posts` | Управление постами (роль `ADMIN`) |
-| `GET/POST/PUT/DELETE` | `/api/admin/hashtags` | Управление хештегами (роль `ADMIN`) |
-| `GET` | `/actuator/health/{liveness,readiness}` | Пробы Kubernetes |
-
----
-
-## Структура проекта
-
-```
-.
-├── docker-compose.yml              # db + liquibase-migrations + backend + frontend
-├── Dockerfile                      # образ бэкенда (Spring Boot jar)
-├── Dockerfile.liquibase            # образ с ченджлогами для сервиса миграций
-├── pom.xml
-├── k8s/                            # манифесты Kubernetes (Kustomize)
-│   ├── kustomization.yaml
-│   ├── namespace.yaml
-│   ├── configMap/                  # backend-config
-│   ├── data/                       # секреты и PVC
-│   ├── db/                         # postgres StatefulSet + headless Service
-│   ├── backend/                    # Deployment + Service + Job миграций
-│   └── frontend/                   # Deployment + Service
-├── src/main/java/ru/itis/stylemap/
-│   ├── config/                     # SecurityConfig, CORS, CSRF для SPA
-│   ├── controller/
-│   │   ├── api/                    # REST-контроллеры для SPA
-│   │   └── ...                     # Thymeleaf-контроллеры (фолбэк)
-│   ├── dto/                        # DTO, зеркалятся в frontend/src/api/types.ts
-│   └── service/
-├── src/main/resources/
-│   ├── application.yaml
-│   ├── templates/                  # Thymeleaf-страницы (по-прежнему работают)
-│   └── static/                     # css/js для Thymeleaf-страниц
-└── frontend/                       # React SPA
-    ├── Dockerfile                  # node build → nginx
-    ├── default.conf.template       # SPA-fallback + прокси (envsubst при старте)
-    ├── vite.config.ts              # dev-прокси на localhost:8080
-    └── src/
-        ├── api/                    # client.ts (fetch + CSRF), types.ts
-        ├── auth/                   # AuthContext
-        ├── components/             # TopNav, PostGrid, HashtagInput, ...
-        └── pages/                  # Login, Feed, CreatePost, PostDetails, Profile, Admin
-```
-
----
-
-## Стек фронтенда
-
-- **React 19** + **TypeScript**
-- **Vite** — сборка и dev-сервер
-- **Tailwind CSS 4** — утилиты + дизайн-токены в `src/index.css`
-- **React Router 7** — клиентская маршрутизация
-
-Маршруты SPA: `/login`, `/register`, `/confirm`, `/` (лента), `/create`,
-`/post/:id`, `/user/:username`, `/profile`, `/admin`.
+Не включайте `.git/`, `.idea/`, `target/`, `node_modules/`, `frontend/dist/`,
+реальный `.env` и любые секреты, `my_db_files/`, `uploads/`, `logs/` и логи.
+Правила `.gitignore` не фильтруют ZIP автоматически: состав архива нужно проверять.

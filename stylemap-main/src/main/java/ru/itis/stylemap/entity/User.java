@@ -23,7 +23,7 @@ public class User {
     @UuidGenerator(style = UuidGenerator.Style.TIME)
     private UUID id;
 
-    @Column(name = "external_auth_id", nullable = false, unique = true, length = 255)
+    @Column(name = "external_auth_id", unique = true, length = 255)
     private String externalAuthId;
 
     @Column(nullable = false, unique = true, length = 50)

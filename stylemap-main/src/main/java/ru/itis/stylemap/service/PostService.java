@@ -247,6 +247,8 @@ public class PostService {
                 post.getHashtags().add(hashtag);
             }
         }
+        // Replace the managed collection so orphanRemoval deletes removed items.
+        post.getItems().clear();
         if (request.outfitItems() != null){
             for (OutfitItemDto itemDto : request.outfitItems()){
                 OutfitItem newItem = new OutfitItem();

@@ -12,6 +12,7 @@ import ru.itis.stylemap.entity.User;
 import ru.itis.stylemap.repository.HashtagRepository;
 import ru.itis.stylemap.repository.PostRepository;
 import ru.itis.stylemap.repository.UserRepository;
+import ru.itis.stylemap.repository.VerificationTokenRepository;
 
 import java.util.List;
 import java.util.NoSuchElementException;
@@ -25,6 +26,7 @@ public class AdminService {
     private final PostRepository postRepository;
     private final HashtagRepository hashtagRepository;
     private final PasswordEncoder passwordEncoder;
+    private final VerificationTokenRepository verificationTokenRepository;
 
 
     @Transactional(readOnly = true)
@@ -104,7 +106,12 @@ public class AdminService {
 
     @Transactional
     public void deleteUser(UUID userId){
-        userRepository.deleteById(userId);
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new NoSuchElementException("Пользователь не найден"));
+        verificationTokenRepository.deleteByUser(user);
+        // Flush child deletion before deleting the referenced user.
+        verificationTokenRepository.flush();
+        userRepository.delete(user);
     }
 
     @Transactional

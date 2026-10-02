@@ -46,7 +46,8 @@ public interface PostRepository extends JpaRepository<Post, UUID> {
            "WHERE p.id = :postId")
     void recalculateRatingStats(@Param("postId") UUID postId);
 
-    @EntityGraph(attributePaths = {"mediaFiles", "items", "hashtags"})
+    // Fetch only one bag; other collections load inside the service transaction.
+    @EntityGraph(attributePaths = {"mediaFiles"})
     Optional<Post> findById(UUID id);
 
     Page<Post> findByAuthorIn(Collection<User> authors, Pageable pageable);

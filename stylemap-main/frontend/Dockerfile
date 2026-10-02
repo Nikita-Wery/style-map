@@ -4,8 +4,8 @@ FROM node:22-alpine AS build
 WORKDIR /app
 
 # Сначала только манифесты — слой с зависимостями кешируется отдельно от исходников.
-COPY package.json package-lock.json* ./
-RUN npm ci --no-audit --no-fund || npm install --no-audit --no-fund
+COPY package.json package-lock.json ./
+RUN npm ci --no-audit --no-fund
 
 COPY . .
 RUN npm run build
@@ -15,9 +15,6 @@ RUN npm run build
 FROM nginx:1.27-alpine AS runtime
 
 # Значения по умолчанию — топология docker-compose.
-# В Kubernetes переопределяются переменными окружения пода:
-#   STYLEMAP_BACKEND_HOST=back-service.<namespace>.svc.cluster.local:8080
-#   STYLEMAP_DNS_RESOLVER=kube-dns.kube-system.svc.cluster.local
 ENV STYLEMAP_BACKEND_HOST=backend:8080 \
     STYLEMAP_DNS_RESOLVER=127.0.0.11
 

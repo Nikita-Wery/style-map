@@ -24,7 +24,6 @@ server {
 
     # DNS для динамического определения адреса бэкенда.
     #   docker-compose : 127.0.0.11                              (встроенный DNS Docker)
-    #   kubernetes     : kube-dns.kube-system.svc.cluster.local  (CoreDNS)
     resolver ${STYLEMAP_DNS_RESOLVER} valid=10s ipv6=off;
 
     # Хешированные ассеты Vite можно кешировать агрессивно.
@@ -38,9 +37,6 @@ server {
     # API, аутентификация, загруженные файлы и OAuth2 идут через тот же origin,
     # поэтому сессионная cookie и CSRF-токен работают без CORS.
     #
-    # ВАЖНО для Kubernetes: nginx НЕ применяет search-домены из /etc/resolv.conf,
-    # поэтому короткое имя сервиса ("back-service") не резолвится — нужно
-    # указывать полное имя: back-service.<namespace>.svc.cluster.local
     location ~ ^/(api|auth|uploads|oauth2|login/oauth2)/ {
         set $backend "${STYLEMAP_BACKEND_HOST}";
         proxy_pass http://$backend;

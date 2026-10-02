@@ -1,0 +1,17 @@
+.git
+.idea
+**/.idea
+target
+**/target
+frontend
+node_modules
+**/node_modules
+.env
+.env.*
+!.env.example
+**/*.pem
+**/*.key
+my_db_files
+uploads
+logs
+**/*.log

@@ -46,3 +46,10 @@ AGENTS.md
 progress.md
 .editorconfig
 specs/
+
+# Credentials and generated submission artifacts
+.env.*
+!.env.example
+*.pem
+*.key
+*.zip
