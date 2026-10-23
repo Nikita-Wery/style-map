@@ -11,6 +11,7 @@ import ru.itis.stylemap.entity.VerificationToken;
 import ru.itis.stylemap.repository.UserRepository;
 import ru.itis.stylemap.repository.VerificationTokenRepository;
 import ru.itis.stylemap.service.MailService;
+import ru.itis.stylemap.metrics.StyleMapBusinessMetrics;
 import ru.itis.stylemap.service.UserAlreadyExistsException;
 
 import java.util.NoSuchElementException;
@@ -24,6 +25,7 @@ public class AuthService {
     private final PasswordEncoder passwordEncoder;
     private final VerificationTokenRepository tokenRepository;
     private final MailService mailService;
+    private final StyleMapBusinessMetrics businessMetrics;
 
     @Transactional
     public void registerUser(NewUserPayload newUserPayload) throws UserAlreadyExistsException {
@@ -45,6 +47,7 @@ public class AuthService {
         tokenRepository.save(verificationToken);
 
         mailService.sendConfirmationEmail(user.getEmail(), tokenString);
+        businessMetrics.userRegistered();
     }
 
     @Transactional

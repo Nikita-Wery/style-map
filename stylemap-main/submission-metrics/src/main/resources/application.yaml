@@ -1,0 +1,97 @@
+logging:
+  structured:
+    json:
+      rename:
+        "[@timestamp]": timestamp
+      add:
+        "[service.name]": stylemap-backend
+
+spring:
+  # Локально миграции выполняет приложение; Compose запускает отдельный сервис.
+  liquibase:
+    enabled: ${SPRING_LIQUIBASE_ENABLED:true}
+  thymeleaf:
+    prefix: classpath:/templates/
+    suffix: .html
+    cache: false
+  datasource:
+    url: ${SPRING_DATASOURCE_URL:jdbc:postgresql://localhost:5434/stylemap}
+    username: ${DB_USER:stylemap}
+    password: ${DB_PASSWORD}
+    driver-class-name: org.postgresql.Driver
+  servlet:
+    multipart:
+      max-file-size: 100MB
+      max-request-size: 105MB
+  jpa:
+    show-sql: ${SHOW_SQL:false}
+  security:
+    oauth2:
+      client:
+        registration:
+          google:
+            client-id: ${GOOGLE_CLIENT_ID}
+            client-secret: ${GOOGLE_CLIENT_SECRET}
+            scope:
+              - email
+              - profile
+  mail:
+    host: ${MAIL_HOST:smtp.gmail.com}
+    port: ${MAIL_PORT:587}
+    username: ${MAIL_USERNAME}
+    password: ${MAIL_PASSWORD}
+    properties:
+      mail:
+        smtp:
+          auth: true
+          starttls:
+            enable: true
+          connectiontimeout: 5000
+          timeout: 5000
+          writetimeout: 5000
+    sender-email: ${MAIL_SENDER_EMAIL:${MAIL_USERNAME}}
+app:
+  mail:
+    enabled: ${APP_MAIL_ENABLED:true}
+  storage:
+    upload-dir: ${APP_STORAGE_UPLOAD_DIR:./uploads}
+  client:
+    currency-api:
+      url: ${CURRENCY_API_URL:https://www.cbr-xml-daily.ru/}
+  security:
+    # Куда перенаправлять после успешного логина (форма или Google).
+    # Для React-фронтенда в docker-compose переопределяется на "/".
+    success-url: ${APP_SECURITY_SUCCESS_URL:/showroom/home}
+    # Origin-ы фронтенда, которым разрешены кросс-доменные запросы к API (только для dev без прокси).
+    allowed-origins: ${APP_SECURITY_ALLOWED_ORIGINS:http://localhost:5173,http://localhost:3000}
+
+server:
+  # Учитывать X-Forwarded-* заголовки от nginx/Ingress, чтобы redirect_uri для OAuth2
+  # и ссылки строились с внешним адресом, а не с адресом контейнера.
+  forward-headers-strategy: framework
+  servlet:
+    session:
+      cookie:
+        same-site: lax
+        http-only: true
+
+management:
+  server:
+    port: 8081
+  health:
+    mail:
+      # SMTP is a health dependency only when email delivery is enabled.
+      enabled: ${app.mail.enabled}
+  endpoints:
+    web:
+      exposure:
+        include: health,info,prometheus
+  endpoint:
+    health:
+      group:
+        readiness:
+          include: readinessState,db
+      # /actuator/health/liveness и /actuator/health/readiness
+      probes:
+        enabled: true
+      show-details: never

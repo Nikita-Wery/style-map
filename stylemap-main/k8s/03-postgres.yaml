@@ -39,11 +39,22 @@ spec:
     metadata:
       labels:
         app: postgres
+      annotations:
+        prometheus.io/scrape: "true"
+        prometheus.io/port: "9187"
+        prometheus.io/path: "/metrics"
     spec:
       containers:
         - name: postgres
           image: postgres:17
           imagePullPolicy: IfNotPresent
+          resources:
+            requests:
+              cpu: 100m
+              memory: 256Mi
+            limits:
+              cpu: 500m
+              memory: 512Mi
           ports:
             - name: postgres
               containerPort: 5432
@@ -92,6 +103,36 @@ spec:
             periodSeconds: 10
             timeoutSeconds: 3
             failureThreshold: 6
+
+        - name: postgres-exporter
+          image: quay.io/prometheuscommunity/postgres-exporter:v0.20.1
+          imagePullPolicy: IfNotPresent
+          resources:
+            requests:
+              cpu: 25m
+              memory: 32Mi
+            limits:
+              cpu: 100m
+              memory: 64Mi
+          ports:
+            - name: metrics
+              containerPort: 9187
+
+          env:
+            - name: DATA_SOURCE_USER
+              valueFrom:
+                secretKeyRef:
+                  name: stylemap-secret
+                  key: DB_USER
+
+            - name: DATA_SOURCE_PASS
+              valueFrom:
+                secretKeyRef:
+                  name: stylemap-secret
+                  key: DB_PASSWORD
+
+            - name: DATA_SOURCE_NAME
+              value: "postgresql://$(DATA_SOURCE_USER):$(DATA_SOURCE_PASS)@localhost:5432/stylemap?sslmode=disable"
 
       volumes:
         - name: postgres-data

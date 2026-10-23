@@ -14,6 +14,7 @@ import org.springframework.web.multipart.MultipartFile;
 import ru.itis.stylemap.dto.*;
 import ru.itis.stylemap.entity.*;
 import ru.itis.stylemap.repository.*;
+import ru.itis.stylemap.metrics.StyleMapBusinessMetrics;
 import ru.itis.stylemap.service.storage.FileStorageService;
 import tools.jackson.databind.ObjectMapper;
 
@@ -23,7 +24,6 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.UUID;
 import java.util.stream.Collectors;
-
 
 @Service
 @RequiredArgsConstructor
@@ -36,11 +36,13 @@ public class PostService {
     private final ObjectMapper objectMapper;
     private final UserFollowsRepository userFollowsRepository;
     private final RatingRepository ratingRepository;
+    private final StyleMapBusinessMetrics businessMetrics;
 
     private static final Logger log = LoggerFactory.getLogger("MAIN_LOGGER");
 
     @Transactional
     public void createPostWithDetails(String username, MultipartFile file, String postDataJson) {
+        var publicationSample = businessMetrics.startOutfitPublication();
         var user = userRepository.findByUsername(username).orElseThrow();
         PostCreateDto dto;
 
@@ -77,6 +79,7 @@ public class PostService {
             }
         }
         postRepository.save(post);
+        businessMetrics.outfitPublished(publicationSample);
     }
 
     @Transactional(readOnly = true)
@@ -184,10 +187,12 @@ public class PostService {
 
         if (userFollowsRepository.existsById(followId)) {
             userFollowsRepository.deleteById(followId);
+            businessMetrics.creatorUnfollowed();
             return Map.of("status", "success", "action", "unfollowed");
         } else {
             UserFollows newFollow = new UserFollows(currentUser, author);
             userFollowsRepository.save(newFollow);
+            businessMetrics.creatorFollowed();
             return Map.of("status", "success", "action", "followed");
         }
     }
@@ -206,6 +211,7 @@ public class PostService {
         rating.setScore(score);
         ratingRepository.save(rating);
         postRepository.recalculateRatingStats(postId);
+        businessMetrics.ratingSubmitted();
         return Map.of("status", "success");
     }
 
