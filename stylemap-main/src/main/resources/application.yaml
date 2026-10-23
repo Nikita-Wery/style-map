@@ -76,6 +76,8 @@ server:
         http-only: true
 
 management:
+  server:
+    port: 8081
   health:
     mail:
       # SMTP is a health dependency only when email delivery is enabled.
@@ -83,7 +85,7 @@ management:
   endpoints:
     web:
       exposure:
-        include: health,info
+        include: health,info,prometheus
   endpoint:
     health:
       group:

@@ -44,7 +44,12 @@ public class SecurityConfig {
                         // ---- Прежние (Thymeleaf) маршруты ----
                         .requestMatchers("/auth/**").anonymous()
                         // Пробы Kubernetes должны отвечать без аутентификации
-                        .requestMatchers("/actuator/health", "/actuator/health/**", "/actuator/info").permitAll()
+                        .requestMatchers(
+                                "/actuator/health",
+                                "/actuator/health/**",
+                                "/actuator/info",
+                                "/actuator/prometheus"
+                        ).permitAll()
                         .requestMatchers("/css/**", "/images/**", "/js/**", "/favicon.ico").permitAll()
                         .requestMatchers("/admin/**").hasRole("ADMIN")
                         .requestMatchers("/uploads/**").authenticated()

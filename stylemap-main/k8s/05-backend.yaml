@@ -38,6 +38,10 @@ spec:
     metadata:
       labels:
         app: backend
+      annotations:
+        prometheus.io/scrape: "true"
+        prometheus.io/port: "8081"
+        prometheus.io/path: "/actuator/prometheus"
     spec:
       containers:
         - name: backend
@@ -47,6 +51,8 @@ spec:
           ports:
             - name: http
               containerPort: 8080
+            - name: management
+              containerPort: 8081
 
           envFrom:
             - configMapRef:
@@ -61,7 +67,7 @@ spec:
           readinessProbe:
             httpGet:
               path: /actuator/health/readiness
-              port: 8080
+              port: management
             initialDelaySeconds: 20
             periodSeconds: 5
             timeoutSeconds: 3
@@ -70,7 +76,7 @@ spec:
           livenessProbe:
             httpGet:
               path: /actuator/health
-              port: 8080
+              port: management
             initialDelaySeconds: 40
             periodSeconds: 10
             timeoutSeconds: 3
