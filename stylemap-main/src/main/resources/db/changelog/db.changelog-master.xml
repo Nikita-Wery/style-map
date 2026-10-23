@@ -14,4 +14,5 @@
     <include file="2026/05/09-01-changelog.sql" relativeToChangelogFile="true"/>
     <include file="2026/02/28-01-changelog.sql" relativeToChangelogFile="true"/>
     <include file="2026/02/28-02-changelog.sql" relativeToChangelogFile="true"/>
+    <include file="2026/10/09-01-local-admin.sql" relativeToChangelogFile="true"/>
 </databaseChangeLog>

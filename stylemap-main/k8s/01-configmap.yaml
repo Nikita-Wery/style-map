@@ -1,0 +1,20 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: stylemap-config
+  namespace: stylemap
+data:
+  DB_NAME: "stylemap"
+
+  SPRING_DATASOURCE_URL: "jdbc:postgresql://postgres:5432/stylemap"
+  SPRING_LIQUIBASE_ENABLED: "false"
+
+  APP_MAIL_ENABLED: "false"
+  MAIL_HOST: "smtp.gmail.com"
+  MAIL_PORT: "587"
+
+  APP_STORAGE_UPLOAD_DIR: "/app/uploads"
+  APP_SECURITY_SUCCESS_URL: "/showroom/home"
+  APP_SECURITY_ALLOWED_ORIGINS: "http://localhost:3000"
+
+  SHOW_SQL: "false"

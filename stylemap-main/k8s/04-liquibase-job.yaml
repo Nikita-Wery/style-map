@@ -1,0 +1,37 @@
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: liquibase
+  namespace: stylemap
+spec:
+  backoffLimit: 3
+  template:
+    metadata:
+      labels:
+        app: liquibase
+    spec:
+      restartPolicy: Never
+      containers:
+        - name: liquibase
+          image: stylemap-liquibase:latest
+          imagePullPolicy: Never
+          args:
+            - --log-level=info
+            - --searchPath=/changesets
+            - --changelog-file=db.changelog-master.xml
+            - --driver=org.postgresql.Driver
+            - --url=jdbc:postgresql://postgres:5432/stylemap
+            - --username=$(DB_USER)
+            - --password=$(DB_PASSWORD)
+            - update
+          env:
+            - name: DB_USER
+              valueFrom:
+                secretKeyRef:
+                  name: stylemap-secret
+                  key: DB_USER
+            - name: DB_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: stylemap-secret
+                  key: DB_PASSWORD

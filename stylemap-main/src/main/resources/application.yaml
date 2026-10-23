@@ -1,3 +1,11 @@
+logging:
+  structured:
+    json:
+      rename:
+        "[@timestamp]": timestamp
+      add:
+        "[service.name]": stylemap-backend
+
 spring:
   # Локально миграции выполняет приложение; Compose запускает отдельный сервис.
   liquibase:
@@ -43,6 +51,8 @@ spring:
           writetimeout: 5000
     sender-email: ${MAIL_SENDER_EMAIL:${MAIL_USERNAME}}
 app:
+  mail:
+    enabled: ${APP_MAIL_ENABLED:true}
   storage:
     upload-dir: ${APP_STORAGE_UPLOAD_DIR:./uploads}
   client:
@@ -66,6 +76,10 @@ server:
         http-only: true
 
 management:
+  health:
+    mail:
+      # SMTP is a health dependency only when email delivery is enabled.
+      enabled: ${app.mail.enabled}
   endpoints:
     web:
       exposure:

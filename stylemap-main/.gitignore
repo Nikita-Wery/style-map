@@ -53,3 +53,6 @@ specs/
 *.pem
 *.key
 *.zip
+
+# Screencasts
+*.mp4
