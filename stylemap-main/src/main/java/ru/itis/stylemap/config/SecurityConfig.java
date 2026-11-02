@@ -41,9 +41,7 @@ public class SecurityConfig {
                         .requestMatchers("/api/admin/**").hasRole("ADMIN")
                         .requestMatchers("/api/**").authenticated()
 
-                        // ---- Прежние (Thymeleaf) маршруты ----
                         .requestMatchers("/auth/**").anonymous()
-                        // Пробы Kubernetes должны отвечать без аутентификации
                         .requestMatchers(
                                 "/actuator/health",
                                 "/actuator/health/**",

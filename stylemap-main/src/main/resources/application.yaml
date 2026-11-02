@@ -95,3 +95,8 @@ management:
       probes:
         enabled: true
       show-details: never
+
+# Coursework demo only; clamped to 0..5000 ms; requires restart.
+stylemap:
+  demo:
+    publish-delay-ms: ${STYLEMAP_DEMO_PUBLISH_DELAY_MS:0}

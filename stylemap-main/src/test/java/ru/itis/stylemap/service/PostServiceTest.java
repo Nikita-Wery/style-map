@@ -56,6 +56,43 @@ class PostServiceTest {
         return new PostService(users, posts, hashtags, storage, mapper, follows, ratings, metrics);
     }
 
+    @ParameterizedTest
+    @CsvSource({"-1,0", "0,0", "2500,2500", "5000,5000", "99999,5000"})
+    void demoDelayIsBounded(long configured, long expected) {
+        var service = service();
+        service.configureDemoPublishDelay(configured);
+        assertEquals(expected, org.springframework.test.util.ReflectionTestUtils
+                .getField(service, "demoPublishDelayMs"));
+    }
+
+    @Test
+    void disabledDemoDoesNotSleepEvenWhenInterrupted() {
+        Thread.currentThread().interrupt();
+        try {
+            assertDoesNotThrow(() -> service().applyDemoPublishDelay());
+            assertTrue(Thread.currentThread().isInterrupted());
+        } finally {
+            Thread.interrupted();
+        }
+    }
+
+    @Test
+    void enabledDemoIsInsideTimerAndInterruptionDoesNotRecordSuccess() {
+        var service = service();
+        service.configureDemoPublishDelay(10);
+        Thread.currentThread().interrupt();
+        try {
+            assertThrows(IllegalStateException.class,
+                    () -> service.createPostWithDetails("author", null, "{}"));
+            assertTrue(Thread.currentThread().isInterrupted());
+            verify(metrics).startOutfitPublication();
+            verify(metrics, never()).outfitPublished(any());
+            verifyNoInteractions(users, storage, posts);
+        } finally {
+            Thread.interrupted();
+        }
+    }
+
     @Test
     void followsCreatorAndRecordsSuccessAfterSaving() {
         followUsers();

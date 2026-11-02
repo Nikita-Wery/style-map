@@ -1,6 +1,7 @@
 package ru.itis.stylemap.service;
 
 import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Value;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.data.domain.Page;
@@ -40,9 +41,28 @@ public class PostService {
 
     private static final Logger log = LoggerFactory.getLogger("MAIN_LOGGER");
 
+    private long demoPublishDelayMs;
+
+    // Coursework only. Zero preserves normal publication behavior.
+    @Value("${stylemap.demo.publish-delay-ms:0}")
+    void configureDemoPublishDelay(long milliseconds) {
+        demoPublishDelayMs = Math.clamp(milliseconds, 0, 5000);
+    }
+
+    void applyDemoPublishDelay() {
+        if (demoPublishDelayMs == 0) return;
+        try {
+            Thread.sleep(demoPublishDelayMs);
+        } catch (InterruptedException ex) {
+            Thread.currentThread().interrupt();
+            throw new IllegalStateException("Coursework publication delay interrupted", ex);
+        }
+    }
+
     @Transactional
     public void createPostWithDetails(String username, MultipartFile file, String postDataJson) {
         var publicationSample = businessMetrics.startOutfitPublication();
+        applyDemoPublishDelay();
         var user = userRepository.findByUsername(username).orElseThrow();
         PostCreateDto dto;
 
