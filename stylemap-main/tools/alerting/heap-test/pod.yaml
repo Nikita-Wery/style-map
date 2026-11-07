@@ -1,0 +1,63 @@
+apiVersion: v1
+kind: Pod
+metadata:
+  name: stylemap-heap-test
+  namespace: stylemap
+  labels:
+    app: backend
+    alert_test: heap
+  annotations:
+    prometheus.io/scrape: "true"
+    prometheus.io/port: "19081"
+    prometheus.io/path: /actuator/prometheus
+spec:
+  restartPolicy: Never
+  activeDeadlineSeconds: 1200
+  terminationGracePeriodSeconds: 15
+  automountServiceAccountToken: false
+  enableServiceLinks: false
+  # Never set this condition True. It keeps the pod out of backend Service traffic,
+  # while the existing annotation-based pod discovery can still scrape it.
+  readinessGates:
+    - conditionType: alerting.stylemap.io/traffic-enabled
+  securityContext:
+    runAsNonRoot: true
+    runAsUser: 65534
+    runAsGroup: 65534
+    fsGroup: 65534
+    seccompProfile:
+      type: RuntimeDefault
+  containers:
+    - name: heap-test
+      image: stylemap-heap-test:v1
+      imagePullPolicy: Never
+      command: [java]
+      args:
+        - -Xms128m
+        - -Xmx128m
+        - -XX:+UseSerialGC
+        - -XX:NewRatio=9
+        - -jar
+        - /app/app.jar
+      ports:
+        - name: heap-metrics
+          containerPort: 19081
+      resources:
+        requests:
+          cpu: 100m
+          memory: 256Mi
+        limits:
+          cpu: 500m
+          memory: 512Mi
+      securityContext:
+        allowPrivilegeEscalation: false
+        readOnlyRootFilesystem: true
+        capabilities:
+          drop: [ALL]
+      volumeMounts:
+        - name: tmp
+          mountPath: /tmp
+  volumes:
+    - name: tmp
+      emptyDir:
+        sizeLimit: 16Mi

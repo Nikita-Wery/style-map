@@ -135,6 +135,8 @@ docker compose down
 
 **Метрики и health.** Spring Boot Actuator публикует health, info и Prometheus-совместимые метрики через Micrometer на 8081. Kubernetes предоставляет отдельный ClusterIP Service `backend-management`. Readiness проверяет `readinessState` и БД; отдельный liveness endpoint также включён.
 
+HTTP Timer `http.server.requests` создаётся после запросов к приложению на 8080; одни лишь health probes и scrape отдельного management-порта 8081 не создают его серии. [Проверка HTTP-метрик](HTTP_METRICS.md) описывает подтверждённые имена Prometheus, команды для работающего backend и регрессионный тест с реальными HTTP-серверами и существующей защитой CSRF.
+
 Бизнес-метрики считают публикации, оценки, подписки/отписки и регистрации. Успех учитывается после успешного завершения транзакции; Timer публикации включает время до commit, но не предшествующую загрузку HTTP multipart и не неуспешные операции. Gauge активных пользователей отражает число включённых аккаунтов в БД, обновляется каждые 15 секунд и не является числом пользователей онлайн.
 
 В `k8s/monitoring/guide-vmsingle-values.yaml` находятся Helm values для VictoriaMetrics Single: scrape каждые 15 секунд, Kubernetes discovery, сбор метрик backend, postgres-exporter и компонентов кластера. Это настройки для отдельной установки VictoriaMetrics, а не самостоятельный Kubernetes-манифест. Blackbox Exporter проверяет внутренний readiness URL: HTTP 200, отсутствие redirect и `status: UP` в теле. Такая проверка не измеряет доступность SPA для внешнего пользователя.

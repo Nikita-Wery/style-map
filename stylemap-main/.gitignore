@@ -41,7 +41,15 @@ my_db_files
 ### Кеш npm, если он создавался внутри воркспейса ###
 frontend/.npm-cache
 docs/
-tools/
+tools/*
+!tools/alerting/
+tools/alerting/*
+!tools/alerting/publish_latency_test.py
+!tools/alerting/README.md
+!tools/alerting/heap-test/
+!tools/alerting/tests/
+tools/alerting/tests/*
+!tools/alerting/tests/test_publish_latency.py
 AGENTS.md
 progress.md
 .editorconfig

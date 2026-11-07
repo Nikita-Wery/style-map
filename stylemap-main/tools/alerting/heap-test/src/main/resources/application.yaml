@@ -1,0 +1,29 @@
+spring:
+  application:
+    name: stylemap-heap-test
+  main:
+    banner-mode: "off"
+server:
+  address: 127.0.0.1
+  port: 19082
+  forward-headers-strategy: none
+  tomcat:
+    threads:
+      max: 4
+      min-spare: 1
+    max-connections: 16
+    accept-count: 4
+management:
+  server:
+    address: 0.0.0.0
+    port: 19081
+  endpoints:
+    web:
+      exposure:
+        include: health,prometheus
+  endpoint:
+    health:
+      show-details: never
+logging:
+  level:
+    root: WARN
