@@ -1,0 +1,457 @@
+{
+  "reviewed_at": "2026-11-08T11:33:36.250208+00:00",
+  "mode": "offline; no new Grafana or VictoriaMetrics queries",
+  "json_files_validated": [
+    "PostgresExporterDashboard.json",
+    "StyleMapApplicationDashboard.json",
+    "exported-metric-names.json",
+    "postgresql-compatibility.json",
+    "postgresql-exporter-dashboard.json",
+    "stylemap-application-dashboard.json",
+    "upstream/postgresql-9628-revision-8.json",
+    "validation-results.json"
+  ],
+  "previous_live_validation_at": "2026-11-08T10:58:57.306633+00:00",
+  "dashboards": [
+    {
+      "export": "StyleMapApplicationDashboard.json",
+      "generated": "stylemap-application-dashboard.json",
+      "sha256": "033a4dead7da0a9baa535ce8e2c3ab8a53f025bddeaed507d216559869088704",
+      "title": "StyleMap - Application Overview",
+      "id": 2,
+      "uid": "00cd27cc-d028-4860-8189-ce1da7618909",
+      "schemaVersion": 42,
+      "pluginVersions": [
+        "12.2.0"
+      ],
+      "datasource_variable": {
+        "current": {
+          "text": "prometheus",
+          "value": "ag3o6jjh0lb7kb"
+        },
+        "label": "VictoriaMetrics datasource",
+        "name": "DS_PROMETHEUS",
+        "options": [],
+        "query": "prometheus",
+        "refresh": 1,
+        "type": "datasource"
+      },
+      "panels": 19,
+      "rows": 4,
+      "targets": 26,
+      "targets_layout_descriptions_units_equal": true,
+      "panels_inspected": [
+        {
+          "title": "Backend scrape health",
+          "type": "stat",
+          "unit": "short",
+          "expressions": [
+            "min(up{app=\"backend\",kubernetes_namespace=\"stylemap\",job=\"kubernetes-pods\"})"
+          ]
+        },
+        {
+          "title": "Blackbox readiness",
+          "type": "stat",
+          "unit": "short",
+          "expressions": [
+            "probe_success{job=\"stylemap-readiness\",instance=\"http://backend-management.stylemap.svc.cluster.local:8081/actuator/health/readiness\"}"
+          ]
+        },
+        {
+          "title": "HTTP RPS",
+          "type": "stat",
+          "unit": "reqps",
+          "expressions": [
+            "sum(rate(http_server_requests_seconds_count{app=\"backend\",kubernetes_namespace=\"stylemap\",job=\"kubernetes-pods\"}[$__rate_interval]))"
+          ]
+        },
+        {
+          "title": "HTTP 5xx percentage",
+          "type": "stat",
+          "unit": "percent",
+          "expressions": [
+            "100 * (sum(rate(http_server_requests_seconds_count{app=\"backend\",kubernetes_namespace=\"stylemap\",job=\"kubernetes-pods\",status=~\"5..\"}[$__rate_interval])) or (0 * sum(rate(http_server_requests_seconds_count{app=\"backend\",kubernetes_namespace=\"stylemap\",job=\"kubernetes-pods\"}[$__rate_interval])))) / (sum(rate(http_server_requests_seconds_count{app=\"backend\",kubernetes_namespace=\"stylemap\",job=\"kubernetes-pods\"}[$__rate_interval])) > 0)"
+          ]
+        },
+        {
+          "title": "Request rate by status",
+          "type": "timeseries",
+          "unit": "reqps",
+          "expressions": [
+            "sum by (status) (rate(http_server_requests_seconds_count{app=\"backend\",kubernetes_namespace=\"stylemap\",job=\"kubernetes-pods\"}[$__rate_interval]))"
+          ]
+        },
+        {
+          "title": "HTTP errors: 4xx / 5xx",
+          "type": "timeseries",
+          "unit": "reqps",
+          "expressions": [
+            "(sum(rate(http_server_requests_seconds_count{app=\"backend\",kubernetes_namespace=\"stylemap\",job=\"kubernetes-pods\",status=~\"4..\"}[$__rate_interval])) or (0 * sum(rate(http_server_requests_seconds_count{app=\"backend\",kubernetes_namespace=\"stylemap\",job=\"kubernetes-pods\"}[$__rate_interval]))))",
+            "(sum(rate(http_server_requests_seconds_count{app=\"backend\",kubernetes_namespace=\"stylemap\",job=\"kubernetes-pods\",status=~\"5..\"}[$__rate_interval])) or (0 * sum(rate(http_server_requests_seconds_count{app=\"backend\",kubernetes_namespace=\"stylemap\",job=\"kubernetes-pods\"}[$__rate_interval]))))"
+          ]
+        },
+        {
+          "title": "Average HTTP latency",
+          "type": "timeseries",
+          "unit": "s",
+          "expressions": [
+            "sum(rate(http_server_requests_seconds_sum{app=\"backend\",kubernetes_namespace=\"stylemap\",job=\"kubernetes-pods\"}[$__rate_interval])) / (sum(rate(http_server_requests_seconds_count{app=\"backend\",kubernetes_namespace=\"stylemap\",job=\"kubernetes-pods\"}[$__rate_interval])) > 0)"
+          ]
+        },
+        {
+          "title": "HTTP latency p95 / p99",
+          "type": "timeseries",
+          "unit": "s",
+          "expressions": [
+            "histogram_quantile(0.95, sum by (le) (rate(http_server_requests_seconds_bucket{app=\"backend\",kubernetes_namespace=\"stylemap\",job=\"kubernetes-pods\"}[$__rate_interval])))",
+            "histogram_quantile(0.99, sum by (le) (rate(http_server_requests_seconds_bucket{app=\"backend\",kubernetes_namespace=\"stylemap\",job=\"kubernetes-pods\"}[$__rate_interval])))"
+          ]
+        },
+        {
+          "title": "Top request rates by URI",
+          "type": "timeseries",
+          "unit": "reqps",
+          "expressions": [
+            "topk(10, sum by (uri) (rate(http_server_requests_seconds_count{app=\"backend\",kubernetes_namespace=\"stylemap\",job=\"kubernetes-pods\"}[$__rate_interval])))"
+          ]
+        },
+        {
+          "title": "JVM heap used / maximum",
+          "type": "timeseries",
+          "unit": "bytes",
+          "expressions": [
+            "sum by (kubernetes_pod_name) (jvm_memory_used_bytes{app=\"backend\",kubernetes_namespace=\"stylemap\",job=\"kubernetes-pods\",area=\"heap\"})",
+            "sum by (kubernetes_pod_name) (jvm_memory_max_bytes{app=\"backend\",kubernetes_namespace=\"stylemap\",job=\"kubernetes-pods\",area=\"heap\"})"
+          ]
+        },
+        {
+          "title": "JVM heap utilization",
+          "type": "timeseries",
+          "unit": "percent",
+          "expressions": [
+            "100 * sum by (kubernetes_pod_name) (jvm_memory_used_bytes{app=\"backend\",kubernetes_namespace=\"stylemap\",job=\"kubernetes-pods\",area=\"heap\"}) / (sum by (kubernetes_pod_name) (jvm_memory_max_bytes{app=\"backend\",kubernetes_namespace=\"stylemap\",job=\"kubernetes-pods\",area=\"heap\"}) > 0)"
+          ]
+        },
+        {
+          "title": "CPU utilization: process / system",
+          "type": "timeseries",
+          "unit": "percentunit",
+          "expressions": [
+            "process_cpu_usage{app=\"backend\",kubernetes_namespace=\"stylemap\",job=\"kubernetes-pods\"}",
+            "system_cpu_usage{app=\"backend\",kubernetes_namespace=\"stylemap\",job=\"kubernetes-pods\"}"
+          ]
+        },
+        {
+          "title": "JVM live threads",
+          "type": "timeseries",
+          "unit": "short",
+          "expressions": [
+            "jvm_threads_live_threads{app=\"backend\",kubernetes_namespace=\"stylemap\",job=\"kubernetes-pods\"}"
+          ]
+        },
+        {
+          "title": "GC pause time / second",
+          "type": "timeseries",
+          "unit": "s",
+          "expressions": [
+            "sum by (kubernetes_pod_name) (rate(jvm_gc_pause_seconds_sum{app=\"backend\",kubernetes_namespace=\"stylemap\",job=\"kubernetes-pods\"}[$__rate_interval]))"
+          ]
+        },
+        {
+          "title": "HikariCP connections",
+          "type": "timeseries",
+          "unit": "short",
+          "expressions": [
+            "hikaricp_connections_active{app=\"backend\",kubernetes_namespace=\"stylemap\",job=\"kubernetes-pods\"}",
+            "hikaricp_connections_idle{app=\"backend\",kubernetes_namespace=\"stylemap\",job=\"kubernetes-pods\"}",
+            "hikaricp_connections_pending{app=\"backend\",kubernetes_namespace=\"stylemap\",job=\"kubernetes-pods\"}",
+            "hikaricp_connections_max{app=\"backend\",kubernetes_namespace=\"stylemap\",job=\"kubernetes-pods\"}"
+          ]
+        },
+        {
+          "title": "HikariCP pool utilization",
+          "type": "timeseries",
+          "unit": "percent",
+          "expressions": [
+            "100 * hikaricp_connections_active{app=\"backend\",kubernetes_namespace=\"stylemap\",job=\"kubernetes-pods\"} / (hikaricp_connections_max{app=\"backend\",kubernetes_namespace=\"stylemap\",job=\"kubernetes-pods\"} > 0)"
+          ]
+        },
+        {
+          "title": "HikariCP connection timeout rate",
+          "type": "timeseries",
+          "unit": "ops",
+          "expressions": [
+            "sum by (pool, kubernetes_pod_name) (rate(hikaricp_connections_timeout_total{app=\"backend\",kubernetes_namespace=\"stylemap\",job=\"kubernetes-pods\"}[$__rate_interval]))"
+          ]
+        },
+        {
+          "title": "Observed readiness availability — 30d",
+          "type": "stat",
+          "unit": "percent",
+          "expressions": [
+            "100 * avg_over_time(probe_success{job=\"stylemap-readiness\",instance=\"http://backend-management.stylemap.svc.cluster.local:8081/actuator/health/readiness\"}[30d])"
+          ]
+        },
+        {
+          "title": "Readiness sample coverage — 30d",
+          "type": "stat",
+          "unit": "percent",
+          "expressions": [
+            "100 * count_over_time(probe_success{job=\"stylemap-readiness\",instance=\"http://backend-management.stylemap.svc.cluster.local:8081/actuator/health/readiness\"}[30d]) / 172800"
+          ]
+        }
+      ]
+    },
+    {
+      "export": "PostgresExporterDashboard.json",
+      "generated": "postgresql-exporter-dashboard.json",
+      "sha256": "5d9408d2b1dce3e14975668a326f3a9843979e3c28194c03f13a2b3a6cf6d815",
+      "title": "StyleMap - PostgreSQL Exporter (9628 adapted)",
+      "id": 3,
+      "uid": "2c735229-ab8d-4fdd-b6ea-44982358ee35",
+      "schemaVersion": 42,
+      "pluginVersions": [
+        "12.2.0"
+      ],
+      "datasource_variable": {
+        "current": {
+          "text": "prometheus",
+          "value": "ag3o6jjh0lb7kb"
+        },
+        "label": "VictoriaMetrics datasource",
+        "name": "DS_PROMETHEUS",
+        "options": [],
+        "query": "prometheus",
+        "refresh": 1,
+        "type": "datasource"
+      },
+      "panels": 27,
+      "rows": 1,
+      "targets": 30,
+      "targets_layout_descriptions_units_equal": true,
+      "panels_inspected": [
+        {
+          "title": "PostgreSQL connection health",
+          "type": "stat",
+          "unit": "short",
+          "expressions": [
+            "pg_up{kubernetes_namespace=\"stylemap\",kubernetes_pod_name=\"postgres-0\",job=\"kubernetes-pods\"}"
+          ]
+        },
+        {
+          "title": "Current fetch data",
+          "type": "timeseries",
+          "unit": "ops",
+          "expressions": [
+            "sum(rate(pg_stat_database_tup_fetched{datname=~\"${database:regex}\", kubernetes_namespace=\"stylemap\",kubernetes_pod_name=\"postgres-0\",job=\"kubernetes-pods\"}[$__rate_interval]))"
+          ]
+        },
+        {
+          "title": "Current insert data",
+          "type": "timeseries",
+          "unit": "ops",
+          "expressions": [
+            "sum(rate(pg_stat_database_tup_inserted{datname=~\"${database:regex}\", kubernetes_namespace=\"stylemap\",kubernetes_pod_name=\"postgres-0\",job=\"kubernetes-pods\"}[$__rate_interval]))"
+          ]
+        },
+        {
+          "title": "Current update data",
+          "type": "timeseries",
+          "unit": "ops",
+          "expressions": [
+            "sum(rate(pg_stat_database_tup_updated{datname=~\"${database:regex}\", kubernetes_namespace=\"stylemap\",kubernetes_pod_name=\"postgres-0\",job=\"kubernetes-pods\"}[$__rate_interval]))"
+          ]
+        },
+        {
+          "title": "Max Connections",
+          "type": "timeseries",
+          "unit": "none",
+          "expressions": [
+            "pg_settings_max_connections{kubernetes_namespace=\"stylemap\",kubernetes_pod_name=\"postgres-0\",job=\"kubernetes-pods\"}"
+          ]
+        },
+        {
+          "title": "Shared Buffers",
+          "type": "timeseries",
+          "unit": "bytes",
+          "expressions": [
+            "pg_settings_shared_buffers_bytes{kubernetes_namespace=\"stylemap\",kubernetes_pod_name=\"postgres-0\",job=\"kubernetes-pods\"}"
+          ]
+        },
+        {
+          "title": "Effective Cache",
+          "type": "timeseries",
+          "unit": "bytes",
+          "expressions": [
+            "pg_settings_effective_cache_size_bytes{kubernetes_namespace=\"stylemap\",kubernetes_pod_name=\"postgres-0\",job=\"kubernetes-pods\"}"
+          ]
+        },
+        {
+          "title": "Maintenance Work Mem",
+          "type": "timeseries",
+          "unit": "bytes",
+          "expressions": [
+            "pg_settings_maintenance_work_mem_bytes{kubernetes_namespace=\"stylemap\",kubernetes_pod_name=\"postgres-0\",job=\"kubernetes-pods\"}"
+          ]
+        },
+        {
+          "title": "Work Mem",
+          "type": "timeseries",
+          "unit": "bytes",
+          "expressions": [
+            "pg_settings_work_mem_bytes{kubernetes_namespace=\"stylemap\",kubernetes_pod_name=\"postgres-0\",job=\"kubernetes-pods\"}"
+          ]
+        },
+        {
+          "title": "Max WAL Size",
+          "type": "timeseries",
+          "unit": "bytes",
+          "expressions": [
+            "pg_settings_max_wal_size_bytes{kubernetes_namespace=\"stylemap\",kubernetes_pod_name=\"postgres-0\",job=\"kubernetes-pods\"}"
+          ]
+        },
+        {
+          "title": "Random Page Cost",
+          "type": "timeseries",
+          "unit": "none",
+          "expressions": [
+            "pg_settings_random_page_cost{kubernetes_namespace=\"stylemap\",kubernetes_pod_name=\"postgres-0\",job=\"kubernetes-pods\"}"
+          ]
+        },
+        {
+          "title": "Seq Page Cost",
+          "type": "timeseries",
+          "unit": "none",
+          "expressions": [
+            "pg_settings_seq_page_cost{kubernetes_namespace=\"stylemap\",kubernetes_pod_name=\"postgres-0\",job=\"kubernetes-pods\"}"
+          ]
+        },
+        {
+          "title": "Max Worker Processes",
+          "type": "timeseries",
+          "unit": "none",
+          "expressions": [
+            "pg_settings_max_worker_processes{kubernetes_namespace=\"stylemap\",kubernetes_pod_name=\"postgres-0\",job=\"kubernetes-pods\"}"
+          ]
+        },
+        {
+          "title": "Max Parallel Workers",
+          "type": "timeseries",
+          "unit": "none",
+          "expressions": [
+            "pg_settings_max_parallel_workers{kubernetes_namespace=\"stylemap\",kubernetes_pod_name=\"postgres-0\",job=\"kubernetes-pods\"}"
+          ]
+        },
+        {
+          "title": "Active sessions",
+          "type": "timeseries",
+          "unit": "none",
+          "expressions": [
+            "pg_stat_activity_count{datname=~\"${database:regex}\", kubernetes_namespace=\"stylemap\",kubernetes_pod_name=\"postgres-0\",job=\"kubernetes-pods\", state=\"active\"}"
+          ]
+        },
+        {
+          "title": "Transactions",
+          "type": "timeseries",
+          "unit": "short",
+          "expressions": [
+            "rate(pg_stat_database_xact_commit{kubernetes_namespace=\"stylemap\",kubernetes_pod_name=\"postgres-0\",job=\"kubernetes-pods\", datname=~\"${database:regex}\"}[$__rate_interval])",
+            "rate(pg_stat_database_xact_rollback{kubernetes_namespace=\"stylemap\",kubernetes_pod_name=\"postgres-0\",job=\"kubernetes-pods\", datname=~\"${database:regex}\"}[$__rate_interval])"
+          ]
+        },
+        {
+          "title": "Update data",
+          "type": "timeseries",
+          "unit": "ops",
+          "expressions": [
+            "rate(pg_stat_database_tup_updated{datname=~\"${database:regex}\", kubernetes_namespace=\"stylemap\",kubernetes_pod_name=\"postgres-0\",job=\"kubernetes-pods\"}[$__rate_interval])"
+          ]
+        },
+        {
+          "title": "Fetch data (SELECT)",
+          "type": "timeseries",
+          "unit": "ops",
+          "expressions": [
+            "rate(pg_stat_database_tup_fetched{datname=~\"${database:regex}\", kubernetes_namespace=\"stylemap\",kubernetes_pod_name=\"postgres-0\",job=\"kubernetes-pods\"}[$__rate_interval])"
+          ]
+        },
+        {
+          "title": "Insert data",
+          "type": "timeseries",
+          "unit": "ops",
+          "expressions": [
+            "rate(pg_stat_database_tup_inserted{datname=~\"${database:regex}\", kubernetes_namespace=\"stylemap\",kubernetes_pod_name=\"postgres-0\",job=\"kubernetes-pods\"}[$__rate_interval])"
+          ]
+        },
+        {
+          "title": "Lock tables",
+          "type": "timeseries",
+          "unit": "short",
+          "expressions": [
+            "pg_locks_count{datname=~\"${database:regex}\", kubernetes_namespace=\"stylemap\",kubernetes_pod_name=\"postgres-0\",job=\"kubernetes-pods\", mode=~\".*\"}"
+          ]
+        },
+        {
+          "title": "Return data",
+          "type": "timeseries",
+          "unit": "ops",
+          "expressions": [
+            "rate(pg_stat_database_tup_returned{datname=~\"${database:regex}\", kubernetes_namespace=\"stylemap\",kubernetes_pod_name=\"postgres-0\",job=\"kubernetes-pods\"}[$__rate_interval])"
+          ]
+        },
+        {
+          "title": "Idle sessions",
+          "type": "timeseries",
+          "unit": "short",
+          "expressions": [
+            "pg_stat_activity_count{datname=~\"${database:regex}\", kubernetes_namespace=\"stylemap\",kubernetes_pod_name=\"postgres-0\",job=\"kubernetes-pods\", state=~\"idle|idle in transaction|idle in transaction (aborted)\"}"
+          ]
+        },
+        {
+          "title": "Delete data",
+          "type": "timeseries",
+          "unit": "ops",
+          "expressions": [
+            "rate(pg_stat_database_tup_deleted{datname=~\"${database:regex}\", kubernetes_namespace=\"stylemap\",kubernetes_pod_name=\"postgres-0\",job=\"kubernetes-pods\"}[$__rate_interval])"
+          ]
+        },
+        {
+          "title": "Cache Hit Rate",
+          "type": "timeseries",
+          "unit": "percentunit",
+          "expressions": [
+            "pg_stat_database_blks_hit{kubernetes_namespace=\"stylemap\",kubernetes_pod_name=\"postgres-0\",job=\"kubernetes-pods\", datname=~\"${database:regex}\"} / (pg_stat_database_blks_read{kubernetes_namespace=\"stylemap\",kubernetes_pod_name=\"postgres-0\",job=\"kubernetes-pods\", datname=~\"${database:regex}\"} + pg_stat_database_blks_hit{kubernetes_namespace=\"stylemap\",kubernetes_pod_name=\"postgres-0\",job=\"kubernetes-pods\", datname=~\"${database:regex}\"})"
+          ]
+        },
+        {
+          "title": "Buffers (bgwriter)",
+          "type": "timeseries",
+          "unit": "short",
+          "expressions": [
+            "rate(pg_stat_bgwriter_buffers_alloc_total{kubernetes_namespace=\"stylemap\",kubernetes_pod_name=\"postgres-0\",job=\"kubernetes-pods\"}[$__rate_interval])",
+            "rate(pg_stat_bgwriter_buffers_clean_total{kubernetes_namespace=\"stylemap\",kubernetes_pod_name=\"postgres-0\",job=\"kubernetes-pods\"}[$__rate_interval])"
+          ]
+        },
+        {
+          "title": "Conflicts/Deadlocks",
+          "type": "timeseries",
+          "unit": "short",
+          "expressions": [
+            "rate(pg_stat_database_conflicts{kubernetes_namespace=\"stylemap\",kubernetes_pod_name=\"postgres-0\",job=\"kubernetes-pods\", datname=~\"${database:regex}\"}[$__rate_interval])",
+            "rate(pg_stat_database_deadlocks{kubernetes_namespace=\"stylemap\",kubernetes_pod_name=\"postgres-0\",job=\"kubernetes-pods\", datname=~\"${database:regex}\"}[$__rate_interval])"
+          ]
+        },
+        {
+          "title": "Temp File (Bytes)",
+          "type": "timeseries",
+          "unit": "bytes",
+          "expressions": [
+            "rate(pg_stat_database_temp_bytes{kubernetes_namespace=\"stylemap\",kubernetes_pod_name=\"postgres-0\",job=\"kubernetes-pods\", datname=~\"${database:regex}\"}[$__rate_interval])"
+          ]
+        }
+      ]
+    }
+  ],
+  "screenshots_found": [],
+  "recordings_found": []
+}

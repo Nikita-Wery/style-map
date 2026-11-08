@@ -1,0 +1,1820 @@
+{
+  "id": null,
+  "uid": null,
+  "title": "StyleMap - PostgreSQL Exporter (9628 adapted)",
+  "version": 1,
+  "schemaVersion": 39,
+  "editable": true,
+  "timezone": "browser",
+  "refresh": "15s",
+  "time": {
+    "from": "now-1h",
+    "to": "now"
+  },
+  "tags": [
+    "stylemap",
+    "postgresql",
+    "9628-adapted"
+  ],
+  "annotations": {
+    "list": []
+  },
+  "links": [
+    {
+      "title": "Upstream 9628 revision 8",
+      "type": "link",
+      "url": "https://grafana.com/grafana/dashboards/9628-postgresql-database/",
+      "targetBlank": true
+    }
+  ],
+  "panels": [
+    {
+      "id": 1,
+      "type": "row",
+      "title": "PostgreSQL — adapted Grafana catalog 9628 revision 8",
+      "collapsed": false,
+      "gridPos": {
+        "x": 0,
+        "y": 0,
+        "w": 24,
+        "h": 1
+      },
+      "panels": []
+    },
+    {
+      "id": 2,
+      "title": "PostgreSQL connection health",
+      "type": "stat",
+      "datasource": {
+        "type": "prometheus",
+        "uid": "${DS_PROMETHEUS}"
+      },
+      "gridPos": {
+        "x": 0,
+        "y": 1,
+        "w": 6,
+        "h": 5
+      },
+      "description": "pg_up — связь exporter с БД; не только scrape health.",
+      "fieldConfig": {
+        "defaults": {
+          "unit": "short",
+          "noValue": "Нет данных",
+          "color": {
+            "mode": "thresholds"
+          },
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "red",
+                "value": null
+              },
+              {
+                "color": "green",
+                "value": 1
+              }
+            ]
+          }
+        },
+        "overrides": []
+      },
+      "options": {
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        },
+        "colorMode": "value",
+        "graphMode": "none",
+        "textMode": "auto"
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "expr": "pg_up{kubernetes_namespace=\"stylemap\",kubernetes_pod_name=\"postgres-0\",job=\"kubernetes-pods\"}",
+          "legendFormat": "PostgreSQL connection health",
+          "datasource": {
+            "type": "prometheus",
+            "uid": "${DS_PROMETHEUS}"
+          },
+          "range": false,
+          "instant": true,
+          "interval": "15s",
+          "editorMode": "code"
+        }
+      ]
+    },
+    {
+      "id": 3,
+      "title": "Current fetch data",
+      "type": "timeseries",
+      "datasource": {
+        "type": "prometheus",
+        "uid": "${DS_PROMETHEUS}"
+      },
+      "gridPos": {
+        "x": 6,
+        "y": 1,
+        "w": 12,
+        "h": 8
+      },
+      "description": "Адаптация dashboard 9628 r8. Kubernetes scope вместо Helm release; metrics проверены по live exporter. Counters используют rate; настройки и gauges — напрямую.",
+      "fieldConfig": {
+        "defaults": {
+          "unit": "ops",
+          "noValue": "Нет данных",
+          "color": {
+            "mode": "palette-classic"
+          },
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "blue",
+                "value": null
+              }
+            ]
+          }
+        },
+        "overrides": []
+      },
+      "options": {
+        "legend": {
+          "displayMode": "table",
+          "placement": "bottom",
+          "calcs": [
+            "lastNotNull"
+          ]
+        },
+        "tooltip": {
+          "mode": "multi",
+          "sort": "desc"
+        }
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "expr": "sum(rate(pg_stat_database_tup_fetched{datname=~\"${database:regex}\", kubernetes_namespace=\"stylemap\",kubernetes_pod_name=\"postgres-0\",job=\"kubernetes-pods\"}[$__rate_interval]))",
+          "legendFormat": "Current fetch data",
+          "datasource": {
+            "type": "prometheus",
+            "uid": "${DS_PROMETHEUS}"
+          },
+          "range": true,
+          "instant": false,
+          "interval": "15s",
+          "editorMode": "code"
+        }
+      ]
+    },
+    {
+      "id": 4,
+      "title": "Current insert data",
+      "type": "timeseries",
+      "datasource": {
+        "type": "prometheus",
+        "uid": "${DS_PROMETHEUS}"
+      },
+      "gridPos": {
+        "x": 0,
+        "y": 9,
+        "w": 12,
+        "h": 8
+      },
+      "description": "Адаптация dashboard 9628 r8. Kubernetes scope вместо Helm release; metrics проверены по live exporter. Counters используют rate; настройки и gauges — напрямую.",
+      "fieldConfig": {
+        "defaults": {
+          "unit": "ops",
+          "noValue": "Нет данных",
+          "color": {
+            "mode": "palette-classic"
+          },
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "blue",
+                "value": null
+              }
+            ]
+          }
+        },
+        "overrides": []
+      },
+      "options": {
+        "legend": {
+          "displayMode": "table",
+          "placement": "bottom",
+          "calcs": [
+            "lastNotNull"
+          ]
+        },
+        "tooltip": {
+          "mode": "multi",
+          "sort": "desc"
+        }
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "expr": "sum(rate(pg_stat_database_tup_inserted{datname=~\"${database:regex}\", kubernetes_namespace=\"stylemap\",kubernetes_pod_name=\"postgres-0\",job=\"kubernetes-pods\"}[$__rate_interval]))",
+          "legendFormat": "Current insert data",
+          "datasource": {
+            "type": "prometheus",
+            "uid": "${DS_PROMETHEUS}"
+          },
+          "range": true,
+          "instant": false,
+          "interval": "15s",
+          "editorMode": "code"
+        }
+      ]
+    },
+    {
+      "id": 5,
+      "title": "Current update data",
+      "type": "timeseries",
+      "datasource": {
+        "type": "prometheus",
+        "uid": "${DS_PROMETHEUS}"
+      },
+      "gridPos": {
+        "x": 12,
+        "y": 9,
+        "w": 12,
+        "h": 8
+      },
+      "description": "Адаптация dashboard 9628 r8. Kubernetes scope вместо Helm release; metrics проверены по live exporter. Counters используют rate; настройки и gauges — напрямую.",
+      "fieldConfig": {
+        "defaults": {
+          "unit": "ops",
+          "noValue": "Нет данных",
+          "color": {
+            "mode": "palette-classic"
+          },
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "blue",
+                "value": null
+              }
+            ]
+          }
+        },
+        "overrides": []
+      },
+      "options": {
+        "legend": {
+          "displayMode": "table",
+          "placement": "bottom",
+          "calcs": [
+            "lastNotNull"
+          ]
+        },
+        "tooltip": {
+          "mode": "multi",
+          "sort": "desc"
+        }
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "expr": "sum(rate(pg_stat_database_tup_updated{datname=~\"${database:regex}\", kubernetes_namespace=\"stylemap\",kubernetes_pod_name=\"postgres-0\",job=\"kubernetes-pods\"}[$__rate_interval]))",
+          "legendFormat": "Current update data",
+          "datasource": {
+            "type": "prometheus",
+            "uid": "${DS_PROMETHEUS}"
+          },
+          "range": true,
+          "instant": false,
+          "interval": "15s",
+          "editorMode": "code"
+        }
+      ]
+    },
+    {
+      "id": 6,
+      "title": "Max Connections",
+      "type": "timeseries",
+      "datasource": {
+        "type": "prometheus",
+        "uid": "${DS_PROMETHEUS}"
+      },
+      "gridPos": {
+        "x": 0,
+        "y": 17,
+        "w": 12,
+        "h": 8
+      },
+      "description": "Адаптация dashboard 9628 r8. Kubernetes scope вместо Helm release; metrics проверены по live exporter. Counters используют rate; настройки и gauges — напрямую.",
+      "fieldConfig": {
+        "defaults": {
+          "unit": "none",
+          "noValue": "Нет данных",
+          "color": {
+            "mode": "palette-classic"
+          },
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "blue",
+                "value": null
+              }
+            ]
+          }
+        },
+        "overrides": []
+      },
+      "options": {
+        "legend": {
+          "displayMode": "table",
+          "placement": "bottom",
+          "calcs": [
+            "lastNotNull"
+          ]
+        },
+        "tooltip": {
+          "mode": "multi",
+          "sort": "desc"
+        }
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "expr": "pg_settings_max_connections{kubernetes_namespace=\"stylemap\",kubernetes_pod_name=\"postgres-0\",job=\"kubernetes-pods\"}",
+          "legendFormat": "Max Connections",
+          "datasource": {
+            "type": "prometheus",
+            "uid": "${DS_PROMETHEUS}"
+          },
+          "range": true,
+          "instant": false,
+          "interval": "15s",
+          "editorMode": "code"
+        }
+      ]
+    },
+    {
+      "id": 7,
+      "title": "Shared Buffers",
+      "type": "timeseries",
+      "datasource": {
+        "type": "prometheus",
+        "uid": "${DS_PROMETHEUS}"
+      },
+      "gridPos": {
+        "x": 12,
+        "y": 17,
+        "w": 12,
+        "h": 8
+      },
+      "description": "Адаптация dashboard 9628 r8. Kubernetes scope вместо Helm release; metrics проверены по live exporter. Counters используют rate; настройки и gauges — напрямую.",
+      "fieldConfig": {
+        "defaults": {
+          "unit": "bytes",
+          "noValue": "Нет данных",
+          "color": {
+            "mode": "palette-classic"
+          },
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "blue",
+                "value": null
+              }
+            ]
+          }
+        },
+        "overrides": []
+      },
+      "options": {
+        "legend": {
+          "displayMode": "table",
+          "placement": "bottom",
+          "calcs": [
+            "lastNotNull"
+          ]
+        },
+        "tooltip": {
+          "mode": "multi",
+          "sort": "desc"
+        }
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "expr": "pg_settings_shared_buffers_bytes{kubernetes_namespace=\"stylemap\",kubernetes_pod_name=\"postgres-0\",job=\"kubernetes-pods\"}",
+          "legendFormat": "Shared Buffers",
+          "datasource": {
+            "type": "prometheus",
+            "uid": "${DS_PROMETHEUS}"
+          },
+          "range": true,
+          "instant": false,
+          "interval": "15s",
+          "editorMode": "code"
+        }
+      ]
+    },
+    {
+      "id": 8,
+      "title": "Effective Cache",
+      "type": "timeseries",
+      "datasource": {
+        "type": "prometheus",
+        "uid": "${DS_PROMETHEUS}"
+      },
+      "gridPos": {
+        "x": 0,
+        "y": 25,
+        "w": 12,
+        "h": 8
+      },
+      "description": "Адаптация dashboard 9628 r8. Kubernetes scope вместо Helm release; metrics проверены по live exporter. Counters используют rate; настройки и gauges — напрямую.",
+      "fieldConfig": {
+        "defaults": {
+          "unit": "bytes",
+          "noValue": "Нет данных",
+          "color": {
+            "mode": "palette-classic"
+          },
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "blue",
+                "value": null
+              }
+            ]
+          }
+        },
+        "overrides": []
+      },
+      "options": {
+        "legend": {
+          "displayMode": "table",
+          "placement": "bottom",
+          "calcs": [
+            "lastNotNull"
+          ]
+        },
+        "tooltip": {
+          "mode": "multi",
+          "sort": "desc"
+        }
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "expr": "pg_settings_effective_cache_size_bytes{kubernetes_namespace=\"stylemap\",kubernetes_pod_name=\"postgres-0\",job=\"kubernetes-pods\"}",
+          "legendFormat": "Effective Cache",
+          "datasource": {
+            "type": "prometheus",
+            "uid": "${DS_PROMETHEUS}"
+          },
+          "range": true,
+          "instant": false,
+          "interval": "15s",
+          "editorMode": "code"
+        }
+      ]
+    },
+    {
+      "id": 9,
+      "title": "Maintenance Work Mem",
+      "type": "timeseries",
+      "datasource": {
+        "type": "prometheus",
+        "uid": "${DS_PROMETHEUS}"
+      },
+      "gridPos": {
+        "x": 12,
+        "y": 25,
+        "w": 12,
+        "h": 8
+      },
+      "description": "Адаптация dashboard 9628 r8. Kubernetes scope вместо Helm release; metrics проверены по live exporter. Counters используют rate; настройки и gauges — напрямую.",
+      "fieldConfig": {
+        "defaults": {
+          "unit": "bytes",
+          "noValue": "Нет данных",
+          "color": {
+            "mode": "palette-classic"
+          },
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "blue",
+                "value": null
+              }
+            ]
+          }
+        },
+        "overrides": []
+      },
+      "options": {
+        "legend": {
+          "displayMode": "table",
+          "placement": "bottom",
+          "calcs": [
+            "lastNotNull"
+          ]
+        },
+        "tooltip": {
+          "mode": "multi",
+          "sort": "desc"
+        }
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "expr": "pg_settings_maintenance_work_mem_bytes{kubernetes_namespace=\"stylemap\",kubernetes_pod_name=\"postgres-0\",job=\"kubernetes-pods\"}",
+          "legendFormat": "Maintenance Work Mem",
+          "datasource": {
+            "type": "prometheus",
+            "uid": "${DS_PROMETHEUS}"
+          },
+          "range": true,
+          "instant": false,
+          "interval": "15s",
+          "editorMode": "code"
+        }
+      ]
+    },
+    {
+      "id": 10,
+      "title": "Work Mem",
+      "type": "timeseries",
+      "datasource": {
+        "type": "prometheus",
+        "uid": "${DS_PROMETHEUS}"
+      },
+      "gridPos": {
+        "x": 0,
+        "y": 33,
+        "w": 12,
+        "h": 8
+      },
+      "description": "Адаптация dashboard 9628 r8. Kubernetes scope вместо Helm release; metrics проверены по live exporter. Counters используют rate; настройки и gauges — напрямую.",
+      "fieldConfig": {
+        "defaults": {
+          "unit": "bytes",
+          "noValue": "Нет данных",
+          "color": {
+            "mode": "palette-classic"
+          },
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "blue",
+                "value": null
+              }
+            ]
+          }
+        },
+        "overrides": []
+      },
+      "options": {
+        "legend": {
+          "displayMode": "table",
+          "placement": "bottom",
+          "calcs": [
+            "lastNotNull"
+          ]
+        },
+        "tooltip": {
+          "mode": "multi",
+          "sort": "desc"
+        }
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "expr": "pg_settings_work_mem_bytes{kubernetes_namespace=\"stylemap\",kubernetes_pod_name=\"postgres-0\",job=\"kubernetes-pods\"}",
+          "legendFormat": "Work Mem",
+          "datasource": {
+            "type": "prometheus",
+            "uid": "${DS_PROMETHEUS}"
+          },
+          "range": true,
+          "instant": false,
+          "interval": "15s",
+          "editorMode": "code"
+        }
+      ]
+    },
+    {
+      "id": 11,
+      "title": "Max WAL Size",
+      "type": "timeseries",
+      "datasource": {
+        "type": "prometheus",
+        "uid": "${DS_PROMETHEUS}"
+      },
+      "gridPos": {
+        "x": 12,
+        "y": 33,
+        "w": 12,
+        "h": 8
+      },
+      "description": "Адаптация dashboard 9628 r8. Kubernetes scope вместо Helm release; metrics проверены по live exporter. Counters используют rate; настройки и gauges — напрямую.",
+      "fieldConfig": {
+        "defaults": {
+          "unit": "bytes",
+          "noValue": "Нет данных",
+          "color": {
+            "mode": "palette-classic"
+          },
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "blue",
+                "value": null
+              }
+            ]
+          }
+        },
+        "overrides": []
+      },
+      "options": {
+        "legend": {
+          "displayMode": "table",
+          "placement": "bottom",
+          "calcs": [
+            "lastNotNull"
+          ]
+        },
+        "tooltip": {
+          "mode": "multi",
+          "sort": "desc"
+        }
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "expr": "pg_settings_max_wal_size_bytes{kubernetes_namespace=\"stylemap\",kubernetes_pod_name=\"postgres-0\",job=\"kubernetes-pods\"}",
+          "legendFormat": "Max WAL Size",
+          "datasource": {
+            "type": "prometheus",
+            "uid": "${DS_PROMETHEUS}"
+          },
+          "range": true,
+          "instant": false,
+          "interval": "15s",
+          "editorMode": "code"
+        }
+      ]
+    },
+    {
+      "id": 12,
+      "title": "Random Page Cost",
+      "type": "timeseries",
+      "datasource": {
+        "type": "prometheus",
+        "uid": "${DS_PROMETHEUS}"
+      },
+      "gridPos": {
+        "x": 0,
+        "y": 41,
+        "w": 12,
+        "h": 8
+      },
+      "description": "Адаптация dashboard 9628 r8. Kubernetes scope вместо Helm release; metrics проверены по live exporter. Counters используют rate; настройки и gauges — напрямую.",
+      "fieldConfig": {
+        "defaults": {
+          "unit": "none",
+          "noValue": "Нет данных",
+          "color": {
+            "mode": "palette-classic"
+          },
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "blue",
+                "value": null
+              }
+            ]
+          }
+        },
+        "overrides": []
+      },
+      "options": {
+        "legend": {
+          "displayMode": "table",
+          "placement": "bottom",
+          "calcs": [
+            "lastNotNull"
+          ]
+        },
+        "tooltip": {
+          "mode": "multi",
+          "sort": "desc"
+        }
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "expr": "pg_settings_random_page_cost{kubernetes_namespace=\"stylemap\",kubernetes_pod_name=\"postgres-0\",job=\"kubernetes-pods\"}",
+          "legendFormat": "Random Page Cost",
+          "datasource": {
+            "type": "prometheus",
+            "uid": "${DS_PROMETHEUS}"
+          },
+          "range": true,
+          "instant": false,
+          "interval": "15s",
+          "editorMode": "code"
+        }
+      ]
+    },
+    {
+      "id": 13,
+      "title": "Seq Page Cost",
+      "type": "timeseries",
+      "datasource": {
+        "type": "prometheus",
+        "uid": "${DS_PROMETHEUS}"
+      },
+      "gridPos": {
+        "x": 12,
+        "y": 41,
+        "w": 12,
+        "h": 8
+      },
+      "description": "Адаптация dashboard 9628 r8. Kubernetes scope вместо Helm release; metrics проверены по live exporter. Counters используют rate; настройки и gauges — напрямую.",
+      "fieldConfig": {
+        "defaults": {
+          "unit": "none",
+          "noValue": "Нет данных",
+          "color": {
+            "mode": "palette-classic"
+          },
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "blue",
+                "value": null
+              }
+            ]
+          }
+        },
+        "overrides": []
+      },
+      "options": {
+        "legend": {
+          "displayMode": "table",
+          "placement": "bottom",
+          "calcs": [
+            "lastNotNull"
+          ]
+        },
+        "tooltip": {
+          "mode": "multi",
+          "sort": "desc"
+        }
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "expr": "pg_settings_seq_page_cost{kubernetes_namespace=\"stylemap\",kubernetes_pod_name=\"postgres-0\",job=\"kubernetes-pods\"}",
+          "legendFormat": "Seq Page Cost",
+          "datasource": {
+            "type": "prometheus",
+            "uid": "${DS_PROMETHEUS}"
+          },
+          "range": true,
+          "instant": false,
+          "interval": "15s",
+          "editorMode": "code"
+        }
+      ]
+    },
+    {
+      "id": 14,
+      "title": "Max Worker Processes",
+      "type": "timeseries",
+      "datasource": {
+        "type": "prometheus",
+        "uid": "${DS_PROMETHEUS}"
+      },
+      "gridPos": {
+        "x": 0,
+        "y": 49,
+        "w": 12,
+        "h": 8
+      },
+      "description": "Адаптация dashboard 9628 r8. Kubernetes scope вместо Helm release; metrics проверены по live exporter. Counters используют rate; настройки и gauges — напрямую.",
+      "fieldConfig": {
+        "defaults": {
+          "unit": "none",
+          "noValue": "Нет данных",
+          "color": {
+            "mode": "palette-classic"
+          },
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "blue",
+                "value": null
+              }
+            ]
+          }
+        },
+        "overrides": []
+      },
+      "options": {
+        "legend": {
+          "displayMode": "table",
+          "placement": "bottom",
+          "calcs": [
+            "lastNotNull"
+          ]
+        },
+        "tooltip": {
+          "mode": "multi",
+          "sort": "desc"
+        }
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "expr": "pg_settings_max_worker_processes{kubernetes_namespace=\"stylemap\",kubernetes_pod_name=\"postgres-0\",job=\"kubernetes-pods\"}",
+          "legendFormat": "Max Worker Processes",
+          "datasource": {
+            "type": "prometheus",
+            "uid": "${DS_PROMETHEUS}"
+          },
+          "range": true,
+          "instant": false,
+          "interval": "15s",
+          "editorMode": "code"
+        }
+      ]
+    },
+    {
+      "id": 15,
+      "title": "Max Parallel Workers",
+      "type": "timeseries",
+      "datasource": {
+        "type": "prometheus",
+        "uid": "${DS_PROMETHEUS}"
+      },
+      "gridPos": {
+        "x": 12,
+        "y": 49,
+        "w": 12,
+        "h": 8
+      },
+      "description": "Адаптация dashboard 9628 r8. Kubernetes scope вместо Helm release; metrics проверены по live exporter. Counters используют rate; настройки и gauges — напрямую.",
+      "fieldConfig": {
+        "defaults": {
+          "unit": "none",
+          "noValue": "Нет данных",
+          "color": {
+            "mode": "palette-classic"
+          },
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "blue",
+                "value": null
+              }
+            ]
+          }
+        },
+        "overrides": []
+      },
+      "options": {
+        "legend": {
+          "displayMode": "table",
+          "placement": "bottom",
+          "calcs": [
+            "lastNotNull"
+          ]
+        },
+        "tooltip": {
+          "mode": "multi",
+          "sort": "desc"
+        }
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "expr": "pg_settings_max_parallel_workers{kubernetes_namespace=\"stylemap\",kubernetes_pod_name=\"postgres-0\",job=\"kubernetes-pods\"}",
+          "legendFormat": "Max Parallel Workers",
+          "datasource": {
+            "type": "prometheus",
+            "uid": "${DS_PROMETHEUS}"
+          },
+          "range": true,
+          "instant": false,
+          "interval": "15s",
+          "editorMode": "code"
+        }
+      ]
+    },
+    {
+      "id": 16,
+      "title": "Active sessions",
+      "type": "timeseries",
+      "datasource": {
+        "type": "prometheus",
+        "uid": "${DS_PROMETHEUS}"
+      },
+      "gridPos": {
+        "x": 0,
+        "y": 57,
+        "w": 12,
+        "h": 8
+      },
+      "description": "Адаптация dashboard 9628 r8. Kubernetes scope вместо Helm release; metrics проверены по live exporter. Counters используют rate; настройки и gauges — напрямую.",
+      "fieldConfig": {
+        "defaults": {
+          "unit": "none",
+          "noValue": "Нет данных",
+          "color": {
+            "mode": "palette-classic"
+          },
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "blue",
+                "value": null
+              }
+            ]
+          }
+        },
+        "overrides": []
+      },
+      "options": {
+        "legend": {
+          "displayMode": "table",
+          "placement": "bottom",
+          "calcs": [
+            "lastNotNull"
+          ]
+        },
+        "tooltip": {
+          "mode": "multi",
+          "sort": "desc"
+        }
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "expr": "pg_stat_activity_count{datname=~\"${database:regex}\", kubernetes_namespace=\"stylemap\",kubernetes_pod_name=\"postgres-0\",job=\"kubernetes-pods\", state=\"active\"}",
+          "legendFormat": "{{datname}}, s: {{state}}",
+          "datasource": {
+            "type": "prometheus",
+            "uid": "${DS_PROMETHEUS}"
+          },
+          "range": true,
+          "instant": false,
+          "interval": "15s",
+          "editorMode": "code"
+        }
+      ]
+    },
+    {
+      "id": 17,
+      "title": "Transactions",
+      "type": "timeseries",
+      "datasource": {
+        "type": "prometheus",
+        "uid": "${DS_PROMETHEUS}"
+      },
+      "gridPos": {
+        "x": 12,
+        "y": 57,
+        "w": 12,
+        "h": 8
+      },
+      "description": "Адаптация dashboard 9628 r8. Kubernetes scope вместо Helm release; metrics проверены по live exporter. Counters используют rate; настройки и gauges — напрямую.",
+      "fieldConfig": {
+        "defaults": {
+          "unit": "short",
+          "noValue": "Нет данных",
+          "color": {
+            "mode": "palette-classic"
+          },
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "blue",
+                "value": null
+              }
+            ]
+          }
+        },
+        "overrides": []
+      },
+      "options": {
+        "legend": {
+          "displayMode": "table",
+          "placement": "bottom",
+          "calcs": [
+            "lastNotNull"
+          ]
+        },
+        "tooltip": {
+          "mode": "multi",
+          "sort": "desc"
+        }
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "expr": "rate(pg_stat_database_xact_commit{kubernetes_namespace=\"stylemap\",kubernetes_pod_name=\"postgres-0\",job=\"kubernetes-pods\", datname=~\"${database:regex}\"}[$__rate_interval])",
+          "legendFormat": "{{datname}} commits",
+          "datasource": {
+            "type": "prometheus",
+            "uid": "${DS_PROMETHEUS}"
+          },
+          "range": true,
+          "instant": false,
+          "interval": "15s",
+          "editorMode": "code"
+        },
+        {
+          "refId": "B",
+          "expr": "rate(pg_stat_database_xact_rollback{kubernetes_namespace=\"stylemap\",kubernetes_pod_name=\"postgres-0\",job=\"kubernetes-pods\", datname=~\"${database:regex}\"}[$__rate_interval])",
+          "legendFormat": "{{datname}} rollbacks",
+          "datasource": {
+            "type": "prometheus",
+            "uid": "${DS_PROMETHEUS}"
+          },
+          "range": true,
+          "instant": false,
+          "interval": "15s",
+          "editorMode": "code"
+        }
+      ]
+    },
+    {
+      "id": 18,
+      "title": "Update data",
+      "type": "timeseries",
+      "datasource": {
+        "type": "prometheus",
+        "uid": "${DS_PROMETHEUS}"
+      },
+      "gridPos": {
+        "x": 0,
+        "y": 65,
+        "w": 12,
+        "h": 8
+      },
+      "description": "Адаптация dashboard 9628 r8. Kubernetes scope вместо Helm release; metrics проверены по live exporter. Counters используют rate; настройки и gauges — напрямую.",
+      "fieldConfig": {
+        "defaults": {
+          "unit": "ops",
+          "noValue": "Нет данных",
+          "color": {
+            "mode": "palette-classic"
+          },
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "blue",
+                "value": null
+              }
+            ]
+          }
+        },
+        "overrides": []
+      },
+      "options": {
+        "legend": {
+          "displayMode": "table",
+          "placement": "bottom",
+          "calcs": [
+            "lastNotNull"
+          ]
+        },
+        "tooltip": {
+          "mode": "multi",
+          "sort": "desc"
+        }
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "expr": "rate(pg_stat_database_tup_updated{datname=~\"${database:regex}\", kubernetes_namespace=\"stylemap\",kubernetes_pod_name=\"postgres-0\",job=\"kubernetes-pods\"}[$__rate_interval])",
+          "legendFormat": "{{datname}}",
+          "datasource": {
+            "type": "prometheus",
+            "uid": "${DS_PROMETHEUS}"
+          },
+          "range": true,
+          "instant": false,
+          "interval": "15s",
+          "editorMode": "code"
+        }
+      ]
+    },
+    {
+      "id": 19,
+      "title": "Fetch data (SELECT)",
+      "type": "timeseries",
+      "datasource": {
+        "type": "prometheus",
+        "uid": "${DS_PROMETHEUS}"
+      },
+      "gridPos": {
+        "x": 12,
+        "y": 65,
+        "w": 12,
+        "h": 8
+      },
+      "description": "Адаптация dashboard 9628 r8. Kubernetes scope вместо Helm release; metrics проверены по live exporter. Counters используют rate; настройки и gauges — напрямую.",
+      "fieldConfig": {
+        "defaults": {
+          "unit": "ops",
+          "noValue": "Нет данных",
+          "color": {
+            "mode": "palette-classic"
+          },
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "blue",
+                "value": null
+              }
+            ]
+          }
+        },
+        "overrides": []
+      },
+      "options": {
+        "legend": {
+          "displayMode": "table",
+          "placement": "bottom",
+          "calcs": [
+            "lastNotNull"
+          ]
+        },
+        "tooltip": {
+          "mode": "multi",
+          "sort": "desc"
+        }
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "expr": "rate(pg_stat_database_tup_fetched{datname=~\"${database:regex}\", kubernetes_namespace=\"stylemap\",kubernetes_pod_name=\"postgres-0\",job=\"kubernetes-pods\"}[$__rate_interval])",
+          "legendFormat": "{{datname}}",
+          "datasource": {
+            "type": "prometheus",
+            "uid": "${DS_PROMETHEUS}"
+          },
+          "range": true,
+          "instant": false,
+          "interval": "15s",
+          "editorMode": "code"
+        }
+      ]
+    },
+    {
+      "id": 20,
+      "title": "Insert data",
+      "type": "timeseries",
+      "datasource": {
+        "type": "prometheus",
+        "uid": "${DS_PROMETHEUS}"
+      },
+      "gridPos": {
+        "x": 0,
+        "y": 73,
+        "w": 12,
+        "h": 8
+      },
+      "description": "Адаптация dashboard 9628 r8. Kubernetes scope вместо Helm release; metrics проверены по live exporter. Counters используют rate; настройки и gauges — напрямую.",
+      "fieldConfig": {
+        "defaults": {
+          "unit": "ops",
+          "noValue": "Нет данных",
+          "color": {
+            "mode": "palette-classic"
+          },
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "blue",
+                "value": null
+              }
+            ]
+          }
+        },
+        "overrides": []
+      },
+      "options": {
+        "legend": {
+          "displayMode": "table",
+          "placement": "bottom",
+          "calcs": [
+            "lastNotNull"
+          ]
+        },
+        "tooltip": {
+          "mode": "multi",
+          "sort": "desc"
+        }
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "expr": "rate(pg_stat_database_tup_inserted{datname=~\"${database:regex}\", kubernetes_namespace=\"stylemap\",kubernetes_pod_name=\"postgres-0\",job=\"kubernetes-pods\"}[$__rate_interval])",
+          "legendFormat": "{{datname}}",
+          "datasource": {
+            "type": "prometheus",
+            "uid": "${DS_PROMETHEUS}"
+          },
+          "range": true,
+          "instant": false,
+          "interval": "15s",
+          "editorMode": "code"
+        }
+      ]
+    },
+    {
+      "id": 21,
+      "title": "Lock tables",
+      "type": "timeseries",
+      "datasource": {
+        "type": "prometheus",
+        "uid": "${DS_PROMETHEUS}"
+      },
+      "gridPos": {
+        "x": 12,
+        "y": 73,
+        "w": 12,
+        "h": 8
+      },
+      "description": "Адаптация dashboard 9628 r8. Kubernetes scope вместо Helm release; metrics проверены по live exporter. Counters используют rate; настройки и gauges — напрямую.",
+      "fieldConfig": {
+        "defaults": {
+          "unit": "short",
+          "noValue": "Нет данных",
+          "color": {
+            "mode": "palette-classic"
+          },
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "blue",
+                "value": null
+              }
+            ]
+          }
+        },
+        "overrides": []
+      },
+      "options": {
+        "legend": {
+          "displayMode": "table",
+          "placement": "bottom",
+          "calcs": [
+            "lastNotNull"
+          ]
+        },
+        "tooltip": {
+          "mode": "multi",
+          "sort": "desc"
+        }
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "expr": "pg_locks_count{datname=~\"${database:regex}\", kubernetes_namespace=\"stylemap\",kubernetes_pod_name=\"postgres-0\",job=\"kubernetes-pods\", mode=~\".*\"}",
+          "legendFormat": "{{datname}},{{mode}}",
+          "datasource": {
+            "type": "prometheus",
+            "uid": "${DS_PROMETHEUS}"
+          },
+          "range": true,
+          "instant": false,
+          "interval": "15s",
+          "editorMode": "code"
+        }
+      ]
+    },
+    {
+      "id": 22,
+      "title": "Return data",
+      "type": "timeseries",
+      "datasource": {
+        "type": "prometheus",
+        "uid": "${DS_PROMETHEUS}"
+      },
+      "gridPos": {
+        "x": 0,
+        "y": 81,
+        "w": 12,
+        "h": 8
+      },
+      "description": "Адаптация dashboard 9628 r8. Kubernetes scope вместо Helm release; metrics проверены по live exporter. Counters используют rate; настройки и gauges — напрямую.",
+      "fieldConfig": {
+        "defaults": {
+          "unit": "ops",
+          "noValue": "Нет данных",
+          "color": {
+            "mode": "palette-classic"
+          },
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "blue",
+                "value": null
+              }
+            ]
+          }
+        },
+        "overrides": []
+      },
+      "options": {
+        "legend": {
+          "displayMode": "table",
+          "placement": "bottom",
+          "calcs": [
+            "lastNotNull"
+          ]
+        },
+        "tooltip": {
+          "mode": "multi",
+          "sort": "desc"
+        }
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "expr": "rate(pg_stat_database_tup_returned{datname=~\"${database:regex}\", kubernetes_namespace=\"stylemap\",kubernetes_pod_name=\"postgres-0\",job=\"kubernetes-pods\"}[$__rate_interval])",
+          "legendFormat": "{{datname}}",
+          "datasource": {
+            "type": "prometheus",
+            "uid": "${DS_PROMETHEUS}"
+          },
+          "range": true,
+          "instant": false,
+          "interval": "15s",
+          "editorMode": "code"
+        }
+      ]
+    },
+    {
+      "id": 23,
+      "title": "Idle sessions",
+      "type": "timeseries",
+      "datasource": {
+        "type": "prometheus",
+        "uid": "${DS_PROMETHEUS}"
+      },
+      "gridPos": {
+        "x": 12,
+        "y": 81,
+        "w": 12,
+        "h": 8
+      },
+      "description": "Адаптация dashboard 9628 r8. Kubernetes scope вместо Helm release; metrics проверены по live exporter. Counters используют rate; настройки и gauges — напрямую.",
+      "fieldConfig": {
+        "defaults": {
+          "unit": "short",
+          "noValue": "Нет данных",
+          "color": {
+            "mode": "palette-classic"
+          },
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "blue",
+                "value": null
+              }
+            ]
+          }
+        },
+        "overrides": []
+      },
+      "options": {
+        "legend": {
+          "displayMode": "table",
+          "placement": "bottom",
+          "calcs": [
+            "lastNotNull"
+          ]
+        },
+        "tooltip": {
+          "mode": "multi",
+          "sort": "desc"
+        }
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "expr": "pg_stat_activity_count{datname=~\"${database:regex}\", kubernetes_namespace=\"stylemap\",kubernetes_pod_name=\"postgres-0\",job=\"kubernetes-pods\", state=~\"idle|idle in transaction|idle in transaction (aborted)\"}",
+          "legendFormat": "{{datname}}, s: {{state}}",
+          "datasource": {
+            "type": "prometheus",
+            "uid": "${DS_PROMETHEUS}"
+          },
+          "range": true,
+          "instant": false,
+          "interval": "15s",
+          "editorMode": "code"
+        }
+      ]
+    },
+    {
+      "id": 24,
+      "title": "Delete data",
+      "type": "timeseries",
+      "datasource": {
+        "type": "prometheus",
+        "uid": "${DS_PROMETHEUS}"
+      },
+      "gridPos": {
+        "x": 0,
+        "y": 89,
+        "w": 12,
+        "h": 8
+      },
+      "description": "Адаптация dashboard 9628 r8. Kubernetes scope вместо Helm release; metrics проверены по live exporter. Counters используют rate; настройки и gauges — напрямую.",
+      "fieldConfig": {
+        "defaults": {
+          "unit": "ops",
+          "noValue": "Нет данных",
+          "color": {
+            "mode": "palette-classic"
+          },
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "blue",
+                "value": null
+              }
+            ]
+          }
+        },
+        "overrides": []
+      },
+      "options": {
+        "legend": {
+          "displayMode": "table",
+          "placement": "bottom",
+          "calcs": [
+            "lastNotNull"
+          ]
+        },
+        "tooltip": {
+          "mode": "multi",
+          "sort": "desc"
+        }
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "expr": "rate(pg_stat_database_tup_deleted{datname=~\"${database:regex}\", kubernetes_namespace=\"stylemap\",kubernetes_pod_name=\"postgres-0\",job=\"kubernetes-pods\"}[$__rate_interval])",
+          "legendFormat": "{{datname}}",
+          "datasource": {
+            "type": "prometheus",
+            "uid": "${DS_PROMETHEUS}"
+          },
+          "range": true,
+          "instant": false,
+          "interval": "15s",
+          "editorMode": "code"
+        }
+      ]
+    },
+    {
+      "id": 25,
+      "title": "Cache Hit Rate",
+      "type": "timeseries",
+      "datasource": {
+        "type": "prometheus",
+        "uid": "${DS_PROMETHEUS}"
+      },
+      "gridPos": {
+        "x": 12,
+        "y": 89,
+        "w": 12,
+        "h": 8
+      },
+      "description": "Адаптация dashboard 9628 r8. Kubernetes scope вместо Helm release; metrics проверены по live exporter. Counters используют rate; настройки и gauges — напрямую.",
+      "fieldConfig": {
+        "defaults": {
+          "unit": "percentunit",
+          "noValue": "Нет данных",
+          "color": {
+            "mode": "palette-classic"
+          },
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "blue",
+                "value": null
+              }
+            ]
+          }
+        },
+        "overrides": []
+      },
+      "options": {
+        "legend": {
+          "displayMode": "table",
+          "placement": "bottom",
+          "calcs": [
+            "lastNotNull"
+          ]
+        },
+        "tooltip": {
+          "mode": "multi",
+          "sort": "desc"
+        }
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "expr": "pg_stat_database_blks_hit{kubernetes_namespace=\"stylemap\",kubernetes_pod_name=\"postgres-0\",job=\"kubernetes-pods\", datname=~\"${database:regex}\"} / (pg_stat_database_blks_read{kubernetes_namespace=\"stylemap\",kubernetes_pod_name=\"postgres-0\",job=\"kubernetes-pods\", datname=~\"${database:regex}\"} + pg_stat_database_blks_hit{kubernetes_namespace=\"stylemap\",kubernetes_pod_name=\"postgres-0\",job=\"kubernetes-pods\", datname=~\"${database:regex}\"})",
+          "legendFormat": "{{ datname }}",
+          "datasource": {
+            "type": "prometheus",
+            "uid": "${DS_PROMETHEUS}"
+          },
+          "range": true,
+          "instant": false,
+          "interval": "15s",
+          "editorMode": "code"
+        }
+      ]
+    },
+    {
+      "id": 26,
+      "title": "Buffers (bgwriter)",
+      "type": "timeseries",
+      "datasource": {
+        "type": "prometheus",
+        "uid": "${DS_PROMETHEUS}"
+      },
+      "gridPos": {
+        "x": 0,
+        "y": 97,
+        "w": 12,
+        "h": 8
+      },
+      "description": "Адаптация dashboard 9628 r8. Kubernetes scope вместо Helm release; metrics проверены по live exporter. Counters используют rate; настройки и gauges — напрямую.",
+      "fieldConfig": {
+        "defaults": {
+          "unit": "short",
+          "noValue": "Нет данных",
+          "color": {
+            "mode": "palette-classic"
+          },
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "blue",
+                "value": null
+              }
+            ]
+          }
+        },
+        "overrides": []
+      },
+      "options": {
+        "legend": {
+          "displayMode": "table",
+          "placement": "bottom",
+          "calcs": [
+            "lastNotNull"
+          ]
+        },
+        "tooltip": {
+          "mode": "multi",
+          "sort": "desc"
+        }
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "expr": "rate(pg_stat_bgwriter_buffers_alloc_total{kubernetes_namespace=\"stylemap\",kubernetes_pod_name=\"postgres-0\",job=\"kubernetes-pods\"}[$__rate_interval])",
+          "legendFormat": "buffers_alloc",
+          "datasource": {
+            "type": "prometheus",
+            "uid": "${DS_PROMETHEUS}"
+          },
+          "range": true,
+          "instant": false,
+          "interval": "15s",
+          "editorMode": "code"
+        },
+        {
+          "refId": "B",
+          "expr": "rate(pg_stat_bgwriter_buffers_clean_total{kubernetes_namespace=\"stylemap\",kubernetes_pod_name=\"postgres-0\",job=\"kubernetes-pods\"}[$__rate_interval])",
+          "legendFormat": "buffers_clean",
+          "datasource": {
+            "type": "prometheus",
+            "uid": "${DS_PROMETHEUS}"
+          },
+          "range": true,
+          "instant": false,
+          "interval": "15s",
+          "editorMode": "code"
+        }
+      ]
+    },
+    {
+      "id": 27,
+      "title": "Conflicts/Deadlocks",
+      "type": "timeseries",
+      "datasource": {
+        "type": "prometheus",
+        "uid": "${DS_PROMETHEUS}"
+      },
+      "gridPos": {
+        "x": 12,
+        "y": 97,
+        "w": 12,
+        "h": 8
+      },
+      "description": "Адаптация dashboard 9628 r8. Kubernetes scope вместо Helm release; metrics проверены по live exporter. Counters используют rate; настройки и gauges — напрямую.",
+      "fieldConfig": {
+        "defaults": {
+          "unit": "short",
+          "noValue": "Нет данных",
+          "color": {
+            "mode": "palette-classic"
+          },
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "blue",
+                "value": null
+              }
+            ]
+          }
+        },
+        "overrides": []
+      },
+      "options": {
+        "legend": {
+          "displayMode": "table",
+          "placement": "bottom",
+          "calcs": [
+            "lastNotNull"
+          ]
+        },
+        "tooltip": {
+          "mode": "multi",
+          "sort": "desc"
+        }
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "expr": "rate(pg_stat_database_conflicts{kubernetes_namespace=\"stylemap\",kubernetes_pod_name=\"postgres-0\",job=\"kubernetes-pods\", datname=~\"${database:regex}\"}[$__rate_interval])",
+          "legendFormat": "{{datname}} conflicts",
+          "datasource": {
+            "type": "prometheus",
+            "uid": "${DS_PROMETHEUS}"
+          },
+          "range": true,
+          "instant": false,
+          "interval": "15s",
+          "editorMode": "code"
+        },
+        {
+          "refId": "B",
+          "expr": "rate(pg_stat_database_deadlocks{kubernetes_namespace=\"stylemap\",kubernetes_pod_name=\"postgres-0\",job=\"kubernetes-pods\", datname=~\"${database:regex}\"}[$__rate_interval])",
+          "legendFormat": "{{datname}} deadlocks",
+          "datasource": {
+            "type": "prometheus",
+            "uid": "${DS_PROMETHEUS}"
+          },
+          "range": true,
+          "instant": false,
+          "interval": "15s",
+          "editorMode": "code"
+        }
+      ]
+    },
+    {
+      "id": 28,
+      "title": "Temp File (Bytes)",
+      "type": "timeseries",
+      "datasource": {
+        "type": "prometheus",
+        "uid": "${DS_PROMETHEUS}"
+      },
+      "gridPos": {
+        "x": 0,
+        "y": 105,
+        "w": 12,
+        "h": 8
+      },
+      "description": "Адаптация dashboard 9628 r8. Kubernetes scope вместо Helm release; metrics проверены по live exporter. Counters используют rate; настройки и gauges — напрямую.",
+      "fieldConfig": {
+        "defaults": {
+          "unit": "bytes",
+          "noValue": "Нет данных",
+          "color": {
+            "mode": "palette-classic"
+          },
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "blue",
+                "value": null
+              }
+            ]
+          }
+        },
+        "overrides": []
+      },
+      "options": {
+        "legend": {
+          "displayMode": "table",
+          "placement": "bottom",
+          "calcs": [
+            "lastNotNull"
+          ]
+        },
+        "tooltip": {
+          "mode": "multi",
+          "sort": "desc"
+        }
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "expr": "rate(pg_stat_database_temp_bytes{kubernetes_namespace=\"stylemap\",kubernetes_pod_name=\"postgres-0\",job=\"kubernetes-pods\", datname=~\"${database:regex}\"}[$__rate_interval])",
+          "legendFormat": "{{datname}}",
+          "datasource": {
+            "type": "prometheus",
+            "uid": "${DS_PROMETHEUS}"
+          },
+          "range": true,
+          "instant": false,
+          "interval": "15s",
+          "editorMode": "code"
+        }
+      ]
+    }
+  ],
+  "templating": {
+    "list": [
+      {
+        "name": "DS_PROMETHEUS",
+        "label": "VictoriaMetrics datasource",
+        "type": "datasource",
+        "query": "prometheus",
+        "refresh": 1,
+        "options": [],
+        "current": {}
+      },
+      {
+        "name": "database",
+        "label": "Database",
+        "type": "query",
+        "datasource": {
+          "type": "prometheus",
+          "uid": "${DS_PROMETHEUS}"
+        },
+        "query": "label_values(pg_stat_database_numbackends{kubernetes_namespace=\"stylemap\",kubernetes_pod_name=\"postgres-0\",job=\"kubernetes-pods\"}, datname)",
+        "refresh": 1,
+        "multi": true,
+        "includeAll": true,
+        "allValue": ".*",
+        "current": {
+          "text": "All",
+          "value": "$__all"
+        },
+        "options": []
+      }
+    ]
+  }
+}

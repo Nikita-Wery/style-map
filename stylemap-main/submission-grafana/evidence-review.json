@@ -1,0 +1,102 @@
+{
+  "checked_at": "2026-11-08T12:30:05.598538+00:00",
+  "images": [
+    {
+      "path": "screenshots/01-application-health.png",
+      "format": "PNG",
+      "width": 1523,
+      "height": 854,
+      "bytes": 155765,
+      "sha256": "7c5624aa74eb29edec803c7e86eccad59a1c163da40095f98e182d7fba1fccc0"
+    },
+    {
+      "path": "screenshots/02-red-latency.png",
+      "format": "PNG",
+      "width": 1523,
+      "height": 854,
+      "bytes": 104877,
+      "sha256": "9065673ff6c46824f711379c462dd735192ed064ae7e5abc693e9b47b739b81a"
+    },
+    {
+      "path": "screenshots/03-jvm-use.png",
+      "format": "PNG",
+      "width": 1523,
+      "height": 768,
+      "bytes": 193488,
+      "sha256": "4fa06f84bc06cc3eb32e1a15d51f852c2bc2dc780530c772e13941fba16155c1"
+    },
+    {
+      "path": "screenshots/04-readiness-sla.png",
+      "format": "PNG",
+      "width": 865,
+      "height": 265,
+      "bytes": 39772,
+      "sha256": "98cc7b5ca3c0a88ad638300c8eafd5e7a974f4dbe324cfdd69475b6d4cb4bf33"
+    },
+    {
+      "path": "screenshots/05-1-postgresql.png",
+      "format": "PNG",
+      "width": 1497,
+      "height": 791,
+      "bytes": 122179,
+      "sha256": "cd5fa7ef9e1af8b10ad322e88c6fe8b6ee58f8ba164e24f84ba46aad1b469c5e"
+    },
+    {
+      "path": "screenshots/05-2-postgresql.png",
+      "format": "PNG",
+      "width": 1497,
+      "height": 791,
+      "bytes": 132012,
+      "sha256": "108c5f5f2e65bd7456fc077f0458ed1d0c4166ff984c9f8419e4413a5c6cdc9b"
+    },
+    {
+      "path": "screenshots/06-query-inspector.png",
+      "format": "PNG",
+      "width": 935,
+      "height": 791,
+      "bytes": 102318,
+      "sha256": "650293d3c8f15a9dde2a54f9e98edc1c3502c3e41e04a406d878b5632d34b7e4"
+    }
+  ],
+  "video": {
+    "path": "screencast/grafana.mp4",
+    "bytes": 250150863,
+    "sha256": "176a9c3c16c996b47ef069a2dc43172aeb354d12e2ba96150271a94840bc92ca",
+    "major_brand": "iso4",
+    "top_level_atoms": [
+      "ftyp",
+      "mdat",
+      "moov"
+    ],
+    "timescale": 1000,
+    "duration_units": 324533,
+    "duration_seconds": 324.533,
+    "tracks": [
+      {
+        "handler": "vide",
+        "timescale": 30,
+        "duration_units": 9736,
+        "duration_seconds": 324.53333333333336,
+        "width": 1280.0,
+        "height": 718.0,
+        "codec_fourcc": "avc1",
+        "samples": 9736,
+        "average_fps": 29.999999999999996
+      },
+      {
+        "handler": "soun",
+        "timescale": 48000,
+        "duration_units": 15576064,
+        "duration_seconds": 324.5013333333333,
+        "width": 0.0,
+        "height": 0.0,
+        "codec_fourcc": "mp4a",
+        "samples": 15211
+      }
+    ],
+    "validation": "container headers/atom boundaries and nonzero sample counts; not full codec decoding or playback"
+  },
+  "original_export_hashes_match": true,
+  "evidence_categories": 6,
+  "screenshot_review": "Visual inspection documented in Отчёт.md; no new runtime queries"
+}

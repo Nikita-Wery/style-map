@@ -1,0 +1,1417 @@
+{
+  "id": null,
+  "uid": null,
+  "title": "StyleMap - Application Overview",
+  "version": 1,
+  "schemaVersion": 39,
+  "editable": true,
+  "timezone": "browser",
+  "refresh": "15s",
+  "time": {
+    "from": "now-1h",
+    "to": "now"
+  },
+  "tags": [
+    "stylemap",
+    "homework",
+    "RED",
+    "USE"
+  ],
+  "annotations": {
+    "list": []
+  },
+  "links": [],
+  "panels": [
+    {
+      "id": 1,
+      "type": "row",
+      "title": "Application health",
+      "collapsed": false,
+      "gridPos": {
+        "x": 0,
+        "y": 0,
+        "w": 24,
+        "h": 1
+      },
+      "panels": []
+    },
+    {
+      "id": 2,
+      "title": "Backend scrape health",
+      "type": "stat",
+      "datasource": {
+        "type": "prometheus",
+        "uid": "${DS_PROMETHEUS}"
+      },
+      "gridPos": {
+        "x": 0,
+        "y": 1,
+        "w": 6,
+        "h": 5
+      },
+      "description": "0: хотя бы один обнаруженный target недоступен; 1: все обнаруженные UP. Исчезнувший target не учитывается; пусто — неизвестно.",
+      "fieldConfig": {
+        "defaults": {
+          "unit": "short",
+          "noValue": "Нет данных",
+          "color": {
+            "mode": "thresholds"
+          },
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "red",
+                "value": null
+              },
+              {
+                "color": "green",
+                "value": 1
+              }
+            ]
+          }
+        },
+        "overrides": []
+      },
+      "options": {
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        },
+        "colorMode": "value",
+        "graphMode": "none",
+        "textMode": "auto"
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "expr": "min(up{app=\"backend\",kubernetes_namespace=\"stylemap\",job=\"kubernetes-pods\"})",
+          "legendFormat": "Backend scrape health",
+          "datasource": {
+            "type": "prometheus",
+            "uid": "${DS_PROMETHEUS}"
+          },
+          "range": false,
+          "instant": true,
+          "interval": "15s",
+          "editorMode": "code"
+        }
+      ]
+    },
+    {
+      "id": 3,
+      "title": "Blackbox readiness",
+      "type": "stat",
+      "datasource": {
+        "type": "prometheus",
+        "uid": "${DS_PROMETHEUS}"
+      },
+      "gridPos": {
+        "x": 6,
+        "y": 1,
+        "w": 6,
+        "h": 5
+      },
+      "description": "Readiness backend, включая db; не frontend/Ingress. Нет данных не равно UP.",
+      "fieldConfig": {
+        "defaults": {
+          "unit": "short",
+          "noValue": "Нет данных",
+          "color": {
+            "mode": "thresholds"
+          },
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "red",
+                "value": null
+              },
+              {
+                "color": "green",
+                "value": 1
+              }
+            ]
+          }
+        },
+        "overrides": []
+      },
+      "options": {
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        },
+        "colorMode": "value",
+        "graphMode": "none",
+        "textMode": "auto"
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "expr": "probe_success{job=\"stylemap-readiness\",instance=\"http://backend-management.stylemap.svc.cluster.local:8081/actuator/health/readiness\"}",
+          "legendFormat": "Blackbox readiness",
+          "datasource": {
+            "type": "prometheus",
+            "uid": "${DS_PROMETHEUS}"
+          },
+          "range": false,
+          "instant": true,
+          "interval": "15s",
+          "editorMode": "code"
+        }
+      ]
+    },
+    {
+      "id": 4,
+      "title": "HTTP RPS",
+      "type": "stat",
+      "datasource": {
+        "type": "prometheus",
+        "uid": "${DS_PROMETHEUS}"
+      },
+      "gridPos": {
+        "x": 12,
+        "y": 1,
+        "w": 6,
+        "h": 5
+      },
+      "description": "Скорость завершённых запросов; пусто — нет серии, 0 — наблюдаемый нулевой трафик.",
+      "fieldConfig": {
+        "defaults": {
+          "unit": "reqps",
+          "noValue": "Нет данных",
+          "color": {
+            "mode": "thresholds"
+          },
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "blue",
+                "value": null
+              }
+            ]
+          }
+        },
+        "overrides": []
+      },
+      "options": {
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        },
+        "colorMode": "value",
+        "graphMode": "none",
+        "textMode": "auto"
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "expr": "sum(rate(http_server_requests_seconds_count{app=\"backend\",kubernetes_namespace=\"stylemap\",job=\"kubernetes-pods\"}[$__rate_interval]))",
+          "legendFormat": "HTTP RPS",
+          "datasource": {
+            "type": "prometheus",
+            "uid": "${DS_PROMETHEUS}"
+          },
+          "range": false,
+          "instant": true,
+          "interval": "15s",
+          "editorMode": "code"
+        }
+      ]
+    },
+    {
+      "id": 5,
+      "title": "HTTP 5xx percentage",
+      "type": "stat",
+      "datasource": {
+        "type": "prometheus",
+        "uid": "${DS_PROMETHEUS}"
+      },
+      "gridPos": {
+        "x": 18,
+        "y": 1,
+        "w": 6,
+        "h": 5
+      },
+      "description": "Нет трафика: Нет данных. Если общий counter существует, отсутствие 5xx-серии означает отсутствие записанных 5xx. Пороги 1/5% — визуальные, не SLA.",
+      "fieldConfig": {
+        "defaults": {
+          "unit": "percent",
+          "noValue": "Нет данных",
+          "color": {
+            "mode": "thresholds"
+          },
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              },
+              {
+                "color": "orange",
+                "value": 1
+              },
+              {
+                "color": "red",
+                "value": 5
+              }
+            ]
+          }
+        },
+        "overrides": []
+      },
+      "options": {
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        },
+        "colorMode": "value",
+        "graphMode": "none",
+        "textMode": "auto"
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "expr": "100 * (sum(rate(http_server_requests_seconds_count{app=\"backend\",kubernetes_namespace=\"stylemap\",job=\"kubernetes-pods\",status=~\"5..\"}[$__rate_interval])) or (0 * sum(rate(http_server_requests_seconds_count{app=\"backend\",kubernetes_namespace=\"stylemap\",job=\"kubernetes-pods\"}[$__rate_interval])))) / (sum(rate(http_server_requests_seconds_count{app=\"backend\",kubernetes_namespace=\"stylemap\",job=\"kubernetes-pods\"}[$__rate_interval])) > 0)",
+          "legendFormat": "HTTP 5xx percentage",
+          "datasource": {
+            "type": "prometheus",
+            "uid": "${DS_PROMETHEUS}"
+          },
+          "range": false,
+          "instant": true,
+          "interval": "15s",
+          "editorMode": "code"
+        }
+      ]
+    },
+    {
+      "id": 6,
+      "type": "row",
+      "title": "RED / Golden Signals",
+      "collapsed": false,
+      "gridPos": {
+        "x": 0,
+        "y": 6,
+        "w": 24,
+        "h": 1
+      },
+      "panels": []
+    },
+    {
+      "id": 7,
+      "title": "Request rate by status",
+      "type": "timeseries",
+      "datasource": {
+        "type": "prometheus",
+        "uid": "${DS_PROMETHEUS}"
+      },
+      "gridPos": {
+        "x": 0,
+        "y": 7,
+        "w": 12,
+        "h": 8
+      },
+      "description": "Traffic и errors; все статусы, включая отклонённые Security запросы. Легенда — HTTP status.",
+      "fieldConfig": {
+        "defaults": {
+          "unit": "reqps",
+          "noValue": "Нет данных",
+          "color": {
+            "mode": "palette-classic"
+          },
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "blue",
+                "value": null
+              }
+            ]
+          }
+        },
+        "overrides": []
+      },
+      "options": {
+        "legend": {
+          "displayMode": "table",
+          "placement": "bottom",
+          "calcs": [
+            "lastNotNull"
+          ]
+        },
+        "tooltip": {
+          "mode": "multi",
+          "sort": "desc"
+        }
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "expr": "sum by (status) (rate(http_server_requests_seconds_count{app=\"backend\",kubernetes_namespace=\"stylemap\",job=\"kubernetes-pods\"}[$__rate_interval]))",
+          "legendFormat": "{{status}}",
+          "datasource": {
+            "type": "prometheus",
+            "uid": "${DS_PROMETHEUS}"
+          },
+          "range": true,
+          "instant": false,
+          "interval": "15s",
+          "editorMode": "code"
+        }
+      ]
+    },
+    {
+      "id": 8,
+      "title": "HTTP errors: 4xx / 5xx",
+      "type": "timeseries",
+      "datasource": {
+        "type": "prometheus",
+        "uid": "${DS_PROMETHEUS}"
+      },
+      "gridPos": {
+        "x": 12,
+        "y": 7,
+        "w": 12,
+        "h": 8
+      },
+      "description": "Ошибки в запросах/с; fallback 0 применяется только при наблюдаемом общем трафике, не при отсутствии метрик.",
+      "fieldConfig": {
+        "defaults": {
+          "unit": "reqps",
+          "noValue": "Нет данных",
+          "color": {
+            "mode": "palette-classic"
+          },
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "blue",
+                "value": null
+              }
+            ]
+          }
+        },
+        "overrides": []
+      },
+      "options": {
+        "legend": {
+          "displayMode": "table",
+          "placement": "bottom",
+          "calcs": [
+            "lastNotNull"
+          ]
+        },
+        "tooltip": {
+          "mode": "multi",
+          "sort": "desc"
+        }
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "expr": "(sum(rate(http_server_requests_seconds_count{app=\"backend\",kubernetes_namespace=\"stylemap\",job=\"kubernetes-pods\",status=~\"4..\"}[$__rate_interval])) or (0 * sum(rate(http_server_requests_seconds_count{app=\"backend\",kubernetes_namespace=\"stylemap\",job=\"kubernetes-pods\"}[$__rate_interval]))))",
+          "legendFormat": "4xx",
+          "datasource": {
+            "type": "prometheus",
+            "uid": "${DS_PROMETHEUS}"
+          },
+          "range": true,
+          "instant": false,
+          "interval": "15s",
+          "editorMode": "code"
+        },
+        {
+          "refId": "B",
+          "expr": "(sum(rate(http_server_requests_seconds_count{app=\"backend\",kubernetes_namespace=\"stylemap\",job=\"kubernetes-pods\",status=~\"5..\"}[$__rate_interval])) or (0 * sum(rate(http_server_requests_seconds_count{app=\"backend\",kubernetes_namespace=\"stylemap\",job=\"kubernetes-pods\"}[$__rate_interval]))))",
+          "legendFormat": "5xx",
+          "datasource": {
+            "type": "prometheus",
+            "uid": "${DS_PROMETHEUS}"
+          },
+          "range": true,
+          "instant": false,
+          "interval": "15s",
+          "editorMode": "code"
+        }
+      ]
+    },
+    {
+      "id": 9,
+      "title": "Average HTTP latency",
+      "type": "timeseries",
+      "datasource": {
+        "type": "prometheus",
+        "uid": "${DS_PROMETHEUS}"
+      },
+      "gridPos": {
+        "x": 0,
+        "y": 15,
+        "w": 12,
+        "h": 8
+      },
+      "description": "Взвешенное среднее: rate(sum)/rate(count). При нулевом трафике нет значения.",
+      "fieldConfig": {
+        "defaults": {
+          "unit": "s",
+          "noValue": "Нет данных",
+          "color": {
+            "mode": "palette-classic"
+          },
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "blue",
+                "value": null
+              }
+            ]
+          }
+        },
+        "overrides": []
+      },
+      "options": {
+        "legend": {
+          "displayMode": "table",
+          "placement": "bottom",
+          "calcs": [
+            "lastNotNull"
+          ]
+        },
+        "tooltip": {
+          "mode": "multi",
+          "sort": "desc"
+        }
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "expr": "sum(rate(http_server_requests_seconds_sum{app=\"backend\",kubernetes_namespace=\"stylemap\",job=\"kubernetes-pods\"}[$__rate_interval])) / (sum(rate(http_server_requests_seconds_count{app=\"backend\",kubernetes_namespace=\"stylemap\",job=\"kubernetes-pods\"}[$__rate_interval])) > 0)",
+          "legendFormat": "Average HTTP latency",
+          "datasource": {
+            "type": "prometheus",
+            "uid": "${DS_PROMETHEUS}"
+          },
+          "range": true,
+          "instant": false,
+          "interval": "15s",
+          "editorMode": "code"
+        }
+      ]
+    },
+    {
+      "id": 10,
+      "title": "HTTP latency p95 / p99",
+      "type": "timeseries",
+      "datasource": {
+        "type": "prometheus",
+        "uid": "${DS_PROMETHEUS}"
+      },
+      "gridPos": {
+        "x": 12,
+        "y": 15,
+        "w": 12,
+        "h": 8
+      },
+      "description": "Приближённые квантили по объединённым histogram buckets всех backend pod/status/URI. le сохраняется; при отсутствии наблюдений NaN.",
+      "fieldConfig": {
+        "defaults": {
+          "unit": "s",
+          "noValue": "Нет данных",
+          "color": {
+            "mode": "palette-classic"
+          },
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "blue",
+                "value": null
+              }
+            ]
+          }
+        },
+        "overrides": []
+      },
+      "options": {
+        "legend": {
+          "displayMode": "table",
+          "placement": "bottom",
+          "calcs": [
+            "lastNotNull"
+          ]
+        },
+        "tooltip": {
+          "mode": "multi",
+          "sort": "desc"
+        }
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "expr": "histogram_quantile(0.95, sum by (le) (rate(http_server_requests_seconds_bucket{app=\"backend\",kubernetes_namespace=\"stylemap\",job=\"kubernetes-pods\"}[$__rate_interval])))",
+          "legendFormat": "p95",
+          "datasource": {
+            "type": "prometheus",
+            "uid": "${DS_PROMETHEUS}"
+          },
+          "range": true,
+          "instant": false,
+          "interval": "15s",
+          "editorMode": "code"
+        },
+        {
+          "refId": "B",
+          "expr": "histogram_quantile(0.99, sum by (le) (rate(http_server_requests_seconds_bucket{app=\"backend\",kubernetes_namespace=\"stylemap\",job=\"kubernetes-pods\"}[$__rate_interval])))",
+          "legendFormat": "p99",
+          "datasource": {
+            "type": "prometheus",
+            "uid": "${DS_PROMETHEUS}"
+          },
+          "range": true,
+          "instant": false,
+          "interval": "15s",
+          "editorMode": "code"
+        }
+      ]
+    },
+    {
+      "id": 11,
+      "title": "Top request rates by URI",
+      "type": "timeseries",
+      "datasource": {
+        "type": "prometheus",
+        "uid": "${DS_PROMETHEUS}"
+      },
+      "gridPos": {
+        "x": 0,
+        "y": 23,
+        "w": 12,
+        "h": 8
+      },
+      "description": "MVC route templates. UNKNOWN включает запросы, отклонённые до MVC; они не исключаются.",
+      "fieldConfig": {
+        "defaults": {
+          "unit": "reqps",
+          "noValue": "Нет данных",
+          "color": {
+            "mode": "palette-classic"
+          },
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "blue",
+                "value": null
+              }
+            ]
+          }
+        },
+        "overrides": []
+      },
+      "options": {
+        "legend": {
+          "displayMode": "table",
+          "placement": "bottom",
+          "calcs": [
+            "lastNotNull"
+          ]
+        },
+        "tooltip": {
+          "mode": "multi",
+          "sort": "desc"
+        }
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "expr": "topk(10, sum by (uri) (rate(http_server_requests_seconds_count{app=\"backend\",kubernetes_namespace=\"stylemap\",job=\"kubernetes-pods\"}[$__rate_interval])))",
+          "legendFormat": "{{uri}}",
+          "datasource": {
+            "type": "prometheus",
+            "uid": "${DS_PROMETHEUS}"
+          },
+          "range": true,
+          "instant": false,
+          "interval": "15s",
+          "editorMode": "code"
+        }
+      ]
+    },
+    {
+      "id": 12,
+      "type": "row",
+      "title": "JVM / USE — utilization, saturation, errors",
+      "collapsed": false,
+      "gridPos": {
+        "x": 0,
+        "y": 31,
+        "w": 24,
+        "h": 1
+      },
+      "panels": []
+    },
+    {
+      "id": 13,
+      "title": "JVM heap used / maximum",
+      "type": "timeseries",
+      "datasource": {
+        "type": "prometheus",
+        "uid": "${DS_PROMETHEUS}"
+      },
+      "gridPos": {
+        "x": 0,
+        "y": 32,
+        "w": 12,
+        "h": 8
+      },
+      "description": "Сумма heap pools по pod; max отображается только для JVM с определённым лимитом.",
+      "fieldConfig": {
+        "defaults": {
+          "unit": "bytes",
+          "noValue": "Нет данных",
+          "color": {
+            "mode": "palette-classic"
+          },
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "blue",
+                "value": null
+              }
+            ]
+          }
+        },
+        "overrides": []
+      },
+      "options": {
+        "legend": {
+          "displayMode": "table",
+          "placement": "bottom",
+          "calcs": [
+            "lastNotNull"
+          ]
+        },
+        "tooltip": {
+          "mode": "multi",
+          "sort": "desc"
+        }
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "expr": "sum by (kubernetes_pod_name) (jvm_memory_used_bytes{app=\"backend\",kubernetes_namespace=\"stylemap\",job=\"kubernetes-pods\",area=\"heap\"})",
+          "legendFormat": "used {{kubernetes_pod_name}}",
+          "datasource": {
+            "type": "prometheus",
+            "uid": "${DS_PROMETHEUS}"
+          },
+          "range": true,
+          "instant": false,
+          "interval": "15s",
+          "editorMode": "code"
+        },
+        {
+          "refId": "B",
+          "expr": "sum by (kubernetes_pod_name) (jvm_memory_max_bytes{app=\"backend\",kubernetes_namespace=\"stylemap\",job=\"kubernetes-pods\",area=\"heap\"})",
+          "legendFormat": "max {{kubernetes_pod_name}}",
+          "datasource": {
+            "type": "prometheus",
+            "uid": "${DS_PROMETHEUS}"
+          },
+          "range": true,
+          "instant": false,
+          "interval": "15s",
+          "editorMode": "code"
+        }
+      ]
+    },
+    {
+      "id": 14,
+      "title": "JVM heap utilization",
+      "type": "timeseries",
+      "datasource": {
+        "type": "prometheus",
+        "uid": "${DS_PROMETHEUS}"
+      },
+      "gridPos": {
+        "x": 12,
+        "y": 32,
+        "w": 12,
+        "h": 8
+      },
+      "description": "Heap utilization по pod; max<=0 даёт Нет данных. Визуальные пороги, не SLO.",
+      "fieldConfig": {
+        "defaults": {
+          "unit": "percent",
+          "noValue": "Нет данных",
+          "color": {
+            "mode": "palette-classic"
+          },
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              },
+              {
+                "color": "orange",
+                "value": 75
+              },
+              {
+                "color": "red",
+                "value": 90
+              }
+            ]
+          }
+        },
+        "overrides": []
+      },
+      "options": {
+        "legend": {
+          "displayMode": "table",
+          "placement": "bottom",
+          "calcs": [
+            "lastNotNull"
+          ]
+        },
+        "tooltip": {
+          "mode": "multi",
+          "sort": "desc"
+        }
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "expr": "100 * sum by (kubernetes_pod_name) (jvm_memory_used_bytes{app=\"backend\",kubernetes_namespace=\"stylemap\",job=\"kubernetes-pods\",area=\"heap\"}) / (sum by (kubernetes_pod_name) (jvm_memory_max_bytes{app=\"backend\",kubernetes_namespace=\"stylemap\",job=\"kubernetes-pods\",area=\"heap\"}) > 0)",
+          "legendFormat": "JVM heap utilization",
+          "datasource": {
+            "type": "prometheus",
+            "uid": "${DS_PROMETHEUS}"
+          },
+          "range": true,
+          "instant": false,
+          "interval": "15s",
+          "editorMode": "code"
+        }
+      ]
+    },
+    {
+      "id": 15,
+      "title": "CPU utilization: process / system",
+      "type": "timeseries",
+      "datasource": {
+        "type": "prometheus",
+        "uid": "${DS_PROMETHEUS}"
+      },
+      "gridPos": {
+        "x": 0,
+        "y": 40,
+        "w": 12,
+        "h": 8
+      },
+      "description": "Micrometer gauges 0..1: не применять rate(). System CPU — доступное JVM окружение, не гарантированно весь Kubernetes node.",
+      "fieldConfig": {
+        "defaults": {
+          "unit": "percentunit",
+          "noValue": "Нет данных",
+          "color": {
+            "mode": "palette-classic"
+          },
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "blue",
+                "value": null
+              }
+            ]
+          }
+        },
+        "overrides": []
+      },
+      "options": {
+        "legend": {
+          "displayMode": "table",
+          "placement": "bottom",
+          "calcs": [
+            "lastNotNull"
+          ]
+        },
+        "tooltip": {
+          "mode": "multi",
+          "sort": "desc"
+        }
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "expr": "process_cpu_usage{app=\"backend\",kubernetes_namespace=\"stylemap\",job=\"kubernetes-pods\"}",
+          "legendFormat": "process {{kubernetes_pod_name}}",
+          "datasource": {
+            "type": "prometheus",
+            "uid": "${DS_PROMETHEUS}"
+          },
+          "range": true,
+          "instant": false,
+          "interval": "15s",
+          "editorMode": "code"
+        },
+        {
+          "refId": "B",
+          "expr": "system_cpu_usage{app=\"backend\",kubernetes_namespace=\"stylemap\",job=\"kubernetes-pods\"}",
+          "legendFormat": "system {{kubernetes_pod_name}}",
+          "datasource": {
+            "type": "prometheus",
+            "uid": "${DS_PROMETHEUS}"
+          },
+          "range": true,
+          "instant": false,
+          "interval": "15s",
+          "editorMode": "code"
+        }
+      ]
+    },
+    {
+      "id": 16,
+      "title": "JVM live threads",
+      "type": "timeseries",
+      "datasource": {
+        "type": "prometheus",
+        "uid": "${DS_PROMETHEUS}"
+      },
+      "gridPos": {
+        "x": 12,
+        "y": 40,
+        "w": 12,
+        "h": 8
+      },
+      "description": "Число живых JVM threads по pod; контекст runtime saturation.",
+      "fieldConfig": {
+        "defaults": {
+          "unit": "short",
+          "noValue": "Нет данных",
+          "color": {
+            "mode": "palette-classic"
+          },
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "blue",
+                "value": null
+              }
+            ]
+          }
+        },
+        "overrides": []
+      },
+      "options": {
+        "legend": {
+          "displayMode": "table",
+          "placement": "bottom",
+          "calcs": [
+            "lastNotNull"
+          ]
+        },
+        "tooltip": {
+          "mode": "multi",
+          "sort": "desc"
+        }
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "expr": "jvm_threads_live_threads{app=\"backend\",kubernetes_namespace=\"stylemap\",job=\"kubernetes-pods\"}",
+          "legendFormat": "JVM live threads",
+          "datasource": {
+            "type": "prometheus",
+            "uid": "${DS_PROMETHEUS}"
+          },
+          "range": true,
+          "instant": false,
+          "interval": "15s",
+          "editorMode": "code"
+        }
+      ]
+    },
+    {
+      "id": 17,
+      "title": "GC pause time / second",
+      "type": "timeseries",
+      "datasource": {
+        "type": "prometheus",
+        "uid": "${DS_PROMETHEUS}"
+      },
+      "gridPos": {
+        "x": 0,
+        "y": 48,
+        "w": 12,
+        "h": 8
+      },
+      "description": "Секунды stop-the-world пауз за секунду; rate counter длительности, не средняя пауза.",
+      "fieldConfig": {
+        "defaults": {
+          "unit": "s",
+          "noValue": "Нет данных",
+          "color": {
+            "mode": "palette-classic"
+          },
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "blue",
+                "value": null
+              }
+            ]
+          }
+        },
+        "overrides": []
+      },
+      "options": {
+        "legend": {
+          "displayMode": "table",
+          "placement": "bottom",
+          "calcs": [
+            "lastNotNull"
+          ]
+        },
+        "tooltip": {
+          "mode": "multi",
+          "sort": "desc"
+        }
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "expr": "sum by (kubernetes_pod_name) (rate(jvm_gc_pause_seconds_sum{app=\"backend\",kubernetes_namespace=\"stylemap\",job=\"kubernetes-pods\"}[$__rate_interval]))",
+          "legendFormat": "GC pause time / second",
+          "datasource": {
+            "type": "prometheus",
+            "uid": "${DS_PROMETHEUS}"
+          },
+          "range": true,
+          "instant": false,
+          "interval": "15s",
+          "editorMode": "code"
+        }
+      ]
+    },
+    {
+      "id": 18,
+      "title": "HikariCP connections",
+      "type": "timeseries",
+      "datasource": {
+        "type": "prometheus",
+        "uid": "${DS_PROMETHEUS}"
+      },
+      "gridPos": {
+        "x": 12,
+        "y": 48,
+        "w": 12,
+        "h": 8
+      },
+      "description": "Active/idle/max — utilization и capacity; pending — saturation, очередь ожидания подключения.",
+      "fieldConfig": {
+        "defaults": {
+          "unit": "short",
+          "noValue": "Нет данных",
+          "color": {
+            "mode": "palette-classic"
+          },
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "blue",
+                "value": null
+              }
+            ]
+          }
+        },
+        "overrides": []
+      },
+      "options": {
+        "legend": {
+          "displayMode": "table",
+          "placement": "bottom",
+          "calcs": [
+            "lastNotNull"
+          ]
+        },
+        "tooltip": {
+          "mode": "multi",
+          "sort": "desc"
+        }
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "expr": "hikaricp_connections_active{app=\"backend\",kubernetes_namespace=\"stylemap\",job=\"kubernetes-pods\"}",
+          "legendFormat": "active {{pool}} {{kubernetes_pod_name}}",
+          "datasource": {
+            "type": "prometheus",
+            "uid": "${DS_PROMETHEUS}"
+          },
+          "range": true,
+          "instant": false,
+          "interval": "15s",
+          "editorMode": "code"
+        },
+        {
+          "refId": "B",
+          "expr": "hikaricp_connections_idle{app=\"backend\",kubernetes_namespace=\"stylemap\",job=\"kubernetes-pods\"}",
+          "legendFormat": "idle {{pool}} {{kubernetes_pod_name}}",
+          "datasource": {
+            "type": "prometheus",
+            "uid": "${DS_PROMETHEUS}"
+          },
+          "range": true,
+          "instant": false,
+          "interval": "15s",
+          "editorMode": "code"
+        },
+        {
+          "refId": "C",
+          "expr": "hikaricp_connections_pending{app=\"backend\",kubernetes_namespace=\"stylemap\",job=\"kubernetes-pods\"}",
+          "legendFormat": "pending {{pool}} {{kubernetes_pod_name}}",
+          "datasource": {
+            "type": "prometheus",
+            "uid": "${DS_PROMETHEUS}"
+          },
+          "range": true,
+          "instant": false,
+          "interval": "15s",
+          "editorMode": "code"
+        },
+        {
+          "refId": "D",
+          "expr": "hikaricp_connections_max{app=\"backend\",kubernetes_namespace=\"stylemap\",job=\"kubernetes-pods\"}",
+          "legendFormat": "max {{pool}} {{kubernetes_pod_name}}",
+          "datasource": {
+            "type": "prometheus",
+            "uid": "${DS_PROMETHEUS}"
+          },
+          "range": true,
+          "instant": false,
+          "interval": "15s",
+          "editorMode": "code"
+        }
+      ]
+    },
+    {
+      "id": 19,
+      "title": "HikariCP pool utilization",
+      "type": "timeseries",
+      "datasource": {
+        "type": "prometheus",
+        "uid": "${DS_PROMETHEUS}"
+      },
+      "gridPos": {
+        "x": 0,
+        "y": 56,
+        "w": 12,
+        "h": 8
+      },
+      "description": "Active/max по pool и pod. Нулевой max не маскируется.",
+      "fieldConfig": {
+        "defaults": {
+          "unit": "percent",
+          "noValue": "Нет данных",
+          "color": {
+            "mode": "palette-classic"
+          },
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              },
+              {
+                "color": "orange",
+                "value": 75
+              },
+              {
+                "color": "red",
+                "value": 90
+              }
+            ]
+          }
+        },
+        "overrides": []
+      },
+      "options": {
+        "legend": {
+          "displayMode": "table",
+          "placement": "bottom",
+          "calcs": [
+            "lastNotNull"
+          ]
+        },
+        "tooltip": {
+          "mode": "multi",
+          "sort": "desc"
+        }
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "expr": "100 * hikaricp_connections_active{app=\"backend\",kubernetes_namespace=\"stylemap\",job=\"kubernetes-pods\"} / (hikaricp_connections_max{app=\"backend\",kubernetes_namespace=\"stylemap\",job=\"kubernetes-pods\"} > 0)",
+          "legendFormat": "HikariCP pool utilization",
+          "datasource": {
+            "type": "prometheus",
+            "uid": "${DS_PROMETHEUS}"
+          },
+          "range": true,
+          "instant": false,
+          "interval": "15s",
+          "editorMode": "code"
+        }
+      ]
+    },
+    {
+      "id": 20,
+      "title": "HikariCP connection timeout rate",
+      "type": "timeseries",
+      "datasource": {
+        "type": "prometheus",
+        "uid": "${DS_PROMETHEUS}"
+      },
+      "gridPos": {
+        "x": 12,
+        "y": 56,
+        "w": 12,
+        "h": 8
+      },
+      "description": "USE errors: подключения, не полученные до timeout, за секунду.",
+      "fieldConfig": {
+        "defaults": {
+          "unit": "ops",
+          "noValue": "Нет данных",
+          "color": {
+            "mode": "palette-classic"
+          },
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "blue",
+                "value": null
+              }
+            ]
+          }
+        },
+        "overrides": []
+      },
+      "options": {
+        "legend": {
+          "displayMode": "table",
+          "placement": "bottom",
+          "calcs": [
+            "lastNotNull"
+          ]
+        },
+        "tooltip": {
+          "mode": "multi",
+          "sort": "desc"
+        }
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "expr": "sum by (pool, kubernetes_pod_name) (rate(hikaricp_connections_timeout_total{app=\"backend\",kubernetes_namespace=\"stylemap\",job=\"kubernetes-pods\"}[$__rate_interval]))",
+          "legendFormat": "HikariCP connection timeout rate",
+          "datasource": {
+            "type": "prometheus",
+            "uid": "${DS_PROMETHEUS}"
+          },
+          "range": true,
+          "instant": false,
+          "interval": "15s",
+          "editorMode": "code"
+        }
+      ]
+    },
+    {
+      "id": 21,
+      "type": "row",
+      "title": "SLA — readiness component, 30 days / target ≥99%",
+      "collapsed": false,
+      "gridPos": {
+        "x": 0,
+        "y": 64,
+        "w": 24,
+        "h": 1
+      },
+      "panels": []
+    },
+    {
+      "id": 22,
+      "title": "Observed readiness availability — 30d",
+      "type": "stat",
+      "datasource": {
+        "type": "prometheus",
+        "uid": "${DS_PROMETHEUS}"
+      },
+      "gridPos": {
+        "x": 0,
+        "y": 65,
+        "w": 6,
+        "h": 5
+      },
+      "description": "Цель ≥99%, период 30 суток из submission-slo/Отчёт_SLI_SLO_SLA.md. Только имеющиеся probe samples; неполная история не подтверждает SLA. Это readiness-компонент, не общий SLA и не договорная гарантия.",
+      "fieldConfig": {
+        "defaults": {
+          "unit": "percent",
+          "noValue": "Нет данных",
+          "color": {
+            "mode": "thresholds"
+          },
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "red",
+                "value": null
+              },
+              {
+                "color": "green",
+                "value": 99
+              }
+            ]
+          }
+        },
+        "overrides": []
+      },
+      "options": {
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        },
+        "colorMode": "value",
+        "graphMode": "none",
+        "textMode": "auto"
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "expr": "100 * avg_over_time(probe_success{job=\"stylemap-readiness\",instance=\"http://backend-management.stylemap.svc.cluster.local:8081/actuator/health/readiness\"}[30d])",
+          "legendFormat": "Observed readiness availability — 30d",
+          "datasource": {
+            "type": "prometheus",
+            "uid": "${DS_PROMETHEUS}"
+          },
+          "range": false,
+          "instant": true,
+          "interval": "15s",
+          "editorMode": "code"
+        }
+      ]
+    },
+    {
+      "id": 23,
+      "title": "Readiness sample coverage — 30d",
+      "type": "stat",
+      "datasource": {
+        "type": "prometheus",
+        "uid": "${DS_PROMETHEUS}"
+      },
+      "gridPos": {
+        "x": 6,
+        "y": 65,
+        "w": 6,
+        "h": 5
+      },
+      "description": "30*24*60*60/15 = 172800 плановых проб. При <100% SLA не подтверждён. Дубликаты/смену scrape interval проверять отдельно; >100% — проверить ingestion.",
+      "fieldConfig": {
+        "defaults": {
+          "unit": "percent",
+          "noValue": "Нет данных",
+          "color": {
+            "mode": "thresholds"
+          },
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "red",
+                "value": null
+              },
+              {
+                "color": "green",
+                "value": 100
+              },
+              {
+                "color": "orange",
+                "value": 100.1
+              }
+            ]
+          }
+        },
+        "overrides": []
+      },
+      "options": {
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        },
+        "colorMode": "value",
+        "graphMode": "none",
+        "textMode": "auto"
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "expr": "100 * count_over_time(probe_success{job=\"stylemap-readiness\",instance=\"http://backend-management.stylemap.svc.cluster.local:8081/actuator/health/readiness\"}[30d]) / 172800",
+          "legendFormat": "Readiness sample coverage — 30d",
+          "datasource": {
+            "type": "prometheus",
+            "uid": "${DS_PROMETHEUS}"
+          },
+          "range": false,
+          "instant": true,
+          "interval": "15s",
+          "editorMode": "code"
+        }
+      ]
+    }
+  ],
+  "templating": {
+    "list": [
+      {
+        "name": "DS_PROMETHEUS",
+        "label": "VictoriaMetrics datasource",
+        "type": "datasource",
+        "query": "prometheus",
+        "refresh": 1,
+        "options": [],
+        "current": {}
+      }
+    ]
+  }
+}

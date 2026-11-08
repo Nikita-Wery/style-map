@@ -1,0 +1,245 @@
+[
+  {
+    "title": "Version",
+    "status": "omitted",
+    "reason": "exporter process / legacy static info",
+    "omitted_targets": [
+      {
+        "expr": "pg_static{release=\"$release\", instance=\"$instance\"}",
+        "reason": "exporter process / legacy static info"
+      }
+    ]
+  },
+  {
+    "title": "Start Time",
+    "status": "omitted",
+    "reason": "missing: pg_postmaster_start_time_seconds",
+    "omitted_targets": [
+      {
+        "expr": "pg_postmaster_start_time_seconds{release=\"$release\", instance=\"$instance\"} * 1000",
+        "reason": "missing: pg_postmaster_start_time_seconds"
+      }
+    ]
+  },
+  {
+    "title": "Current fetch data",
+    "status": "adapted",
+    "reason": "",
+    "omitted_targets": []
+  },
+  {
+    "title": "Current insert data",
+    "status": "adapted",
+    "reason": "",
+    "omitted_targets": []
+  },
+  {
+    "title": "Current update data",
+    "status": "adapted",
+    "reason": "",
+    "omitted_targets": []
+  },
+  {
+    "title": "Max Connections",
+    "status": "adapted",
+    "reason": "",
+    "omitted_targets": []
+  },
+  {
+    "title": "Average CPU Usage",
+    "status": "omitted",
+    "reason": "exporter process / legacy static info",
+    "omitted_targets": [
+      {
+        "expr": "avg(rate(process_cpu_seconds_total{release=\"$release\", instance=\"$instance\"}[5m]) * 1000)",
+        "reason": "exporter process / legacy static info"
+      }
+    ]
+  },
+  {
+    "title": "Average Memory Usage",
+    "status": "omitted",
+    "reason": "exporter process / legacy static info",
+    "omitted_targets": [
+      {
+        "expr": "avg(rate(process_resident_memory_bytes{release=\"$release\", instance=\"$instance\"}[5m]))",
+        "reason": "exporter process / legacy static info"
+      },
+      {
+        "expr": "avg(rate(process_virtual_memory_bytes{release=\"$release\", instance=\"$instance\"}[5m]))",
+        "reason": "exporter process / legacy static info"
+      }
+    ]
+  },
+  {
+    "title": "Open File Descriptors",
+    "status": "omitted",
+    "reason": "exporter process / legacy static info",
+    "omitted_targets": [
+      {
+        "expr": "process_open_fds{release=\"$release\", instance=\"$instance\"}",
+        "reason": "exporter process / legacy static info"
+      }
+    ]
+  },
+  {
+    "title": "Shared Buffers",
+    "status": "adapted",
+    "reason": "",
+    "omitted_targets": []
+  },
+  {
+    "title": "Effective Cache",
+    "status": "adapted",
+    "reason": "",
+    "omitted_targets": []
+  },
+  {
+    "title": "Maintenance Work Mem",
+    "status": "adapted",
+    "reason": "",
+    "omitted_targets": []
+  },
+  {
+    "title": "Work Mem",
+    "status": "adapted",
+    "reason": "",
+    "omitted_targets": []
+  },
+  {
+    "title": "Max WAL Size",
+    "status": "adapted",
+    "reason": "",
+    "omitted_targets": []
+  },
+  {
+    "title": "Random Page Cost",
+    "status": "adapted",
+    "reason": "",
+    "omitted_targets": []
+  },
+  {
+    "title": "Seq Page Cost",
+    "status": "adapted",
+    "reason": "",
+    "omitted_targets": []
+  },
+  {
+    "title": "Max Worker Processes",
+    "status": "adapted",
+    "reason": "",
+    "omitted_targets": []
+  },
+  {
+    "title": "Max Parallel Workers",
+    "status": "adapted",
+    "reason": "",
+    "omitted_targets": []
+  },
+  {
+    "title": "Active sessions",
+    "status": "adapted",
+    "reason": "",
+    "omitted_targets": []
+  },
+  {
+    "title": "Transactions",
+    "status": "adapted",
+    "reason": "",
+    "omitted_targets": []
+  },
+  {
+    "title": "Update data",
+    "status": "adapted",
+    "reason": "",
+    "omitted_targets": []
+  },
+  {
+    "title": "Fetch data (SELECT)",
+    "status": "adapted",
+    "reason": "",
+    "omitted_targets": []
+  },
+  {
+    "title": "Insert data",
+    "status": "adapted",
+    "reason": "",
+    "omitted_targets": []
+  },
+  {
+    "title": "Lock tables",
+    "status": "adapted",
+    "reason": "",
+    "omitted_targets": []
+  },
+  {
+    "title": "Return data",
+    "status": "adapted",
+    "reason": "",
+    "omitted_targets": []
+  },
+  {
+    "title": "Idle sessions",
+    "status": "adapted",
+    "reason": "",
+    "omitted_targets": []
+  },
+  {
+    "title": "Delete data",
+    "status": "adapted",
+    "reason": "",
+    "omitted_targets": []
+  },
+  {
+    "title": "Cache Hit Rate",
+    "status": "adapted",
+    "reason": "",
+    "omitted_targets": []
+  },
+  {
+    "title": "Buffers (bgwriter)",
+    "status": "adapted",
+    "reason": "missing: pg_stat_bgwriter_buffers_checkpoint_total",
+    "omitted_targets": [
+      {
+        "expr": "irate(pg_stat_bgwriter_buffers_backend_total{instance=\"$instance\"}[5m])",
+        "reason": "missing: pg_stat_bgwriter_buffers_backend_total"
+      },
+      {
+        "expr": "irate(pg_stat_bgwriter_buffers_backend_fsync_total{instance=\"$instance\"}[5m])",
+        "reason": "missing: pg_stat_bgwriter_buffers_backend_fsync_total"
+      },
+      {
+        "expr": "irate(pg_stat_bgwriter_buffers_checkpoint_total{instance=\"$instance\"}[5m])",
+        "reason": "missing: pg_stat_bgwriter_buffers_checkpoint_total"
+      }
+    ]
+  },
+  {
+    "title": "Conflicts/Deadlocks",
+    "status": "adapted",
+    "reason": "",
+    "omitted_targets": []
+  },
+  {
+    "title": "Temp File (Bytes)",
+    "status": "adapted",
+    "reason": "",
+    "omitted_targets": []
+  },
+  {
+    "title": "Checkpoint Stats",
+    "status": "omitted",
+    "reason": "missing: pg_stat_bgwriter_checkpoint_sync_time_total",
+    "omitted_targets": [
+      {
+        "expr": "irate(pg_stat_bgwriter_checkpoint_write_time_total{instance=\"$instance\"}[5m])",
+        "reason": "missing: pg_stat_bgwriter_checkpoint_write_time_total"
+      },
+      {
+        "expr": "irate(pg_stat_bgwriter_checkpoint_sync_time_total{instance=\"$instance\"}[5m])",
+        "reason": "missing: pg_stat_bgwriter_checkpoint_sync_time_total"
+      }
+    ]
+  }
+]
